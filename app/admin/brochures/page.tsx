@@ -78,7 +78,7 @@ export default function BrochureAdmin() {
       size,
       languages,
       imageUrl,
-      pdfUrl: pdfUrl || "/brochures/placeholder.pdf",
+      pdfUrl: pdfUrl || "/brochures/placeholder.jpg",
     });
 
     if (res.success) {
@@ -155,8 +155,7 @@ export default function BrochureAdmin() {
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Cover Image</th>
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Brochure Title</th>
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Languages</th>
-                <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">File Size</th>
-                <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Document Path</th>
+                <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">JPG Path</th>
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
@@ -184,11 +183,10 @@ export default function BrochureAdmin() {
                       {brochure.languages}
                     </span>
                   </td>
-                  <td className="p-4 align-middle text-sm font-semibold text-gray-700">{brochure.size}</td>
                   <td className="p-4 align-middle text-sm text-green-700">
                     <span className="inline-flex items-center gap-1 font-semibold text-xs bg-green-50 px-2 py-0.5 rounded-md">
                       <Paperclip className="h-3 w-3" />
-                      {brochure.pdfUrl || "placeholder.pdf"}
+                      {brochure.pdfUrl || "placeholder.jpg"}
                     </span>
                   </td>
                   <td className="p-4 align-middle text-right">
@@ -288,13 +286,13 @@ export default function BrochureAdmin() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">PDF File Path / Download Link</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">JPG File Path / Download Link</label>
                 <input 
                   type="text" 
                   value={pdfUrl} 
                   onChange={e => setPdfUrl(e.target.value)} 
                   className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition py-2 px-3.5 text-sm font-medium text-gray-700" 
-                  placeholder="e.g. /brochures/layout.pdf"
+                  placeholder="e.g. /brochures/layout.jpg"
                 />
               </div>
 

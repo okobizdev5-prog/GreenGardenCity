@@ -199,7 +199,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900">Head Office</p>
-                    <p className="text-gray-500">Sector-15, Uttara, Dhaka, Bangladesh</p>
+                    <p className="text-gray-500">Green Garden City, Kaliganj, Gazipur</p>
                   </div>
                 </div>
 
@@ -209,7 +209,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900">Phone</p>
-                    <p className="text-gray-500">+880 1712-345678</p>
+                    <p className="text-gray-500">01898777431</p>
                   </div>
                 </div>
 
@@ -219,7 +219,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900">Email</p>
-                    <p className="text-green-700 font-medium">info@greengardencity.com</p>
+                    <p className="text-green-700 font-medium">greengardencitypurbachal@gmail.com</p>
                   </div>
                 </div>
 

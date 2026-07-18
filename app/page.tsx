@@ -13,14 +13,11 @@ export default async function Home() {
   const plainProjects = projects.map(p => ({
     id: p.id,
     title: p.title,
-    size: p.size,
-    imageUrl: p.imageUrl,
-    features: p.features,
-    price: p.price,
-    zone: p.zone,
-    status: p.status,
+    description: p.description || "",
+    images: p.images || [],
+    category: p.category || "Phase 1",
+    status: p.status || "Ongoing",
   }));
 
   return <HomeClient initialProjects={plainProjects} />;
 }
-

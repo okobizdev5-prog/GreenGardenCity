@@ -23,59 +23,37 @@ async function main() {
   console.log('Seeding 6 default projects...');
   const defaultProjects = [
     {
-      title: 'Block A - Plot 12',
-      size: '5 Katha',
-      imageUrl: '/uploads/lakeside.jpg',
-      features: 'Lakeside View, South Facing, Ready for Registration, 30ft Road Access',
-      price: '45 Lac BDT',
-      zone: 'North Sector',
-      status: 'Available',
+      title: "Green Garden Premium Villas",
+      description: `<h1>Green Garden Premium Villas</h1><p>Experience ultra-luxury living in our flagship villa project. Surrounded by natural lakes and private gardens, these villas offer the perfect sanctuary for your family.</p><h3>Key Features</h3><ul><li>Private Infinity Pools &amp; Sun Decks</li><li>Smart Home Automation &amp; Centralized AC</li><li>Renewable Solar Power Grid Connection</li><li>24/7 Gated Security &amp; CCTV Surveillance</li></ul><p>Located in the heart of Green Garden City, each villa layout is customizable to fit your architectural preferences.</p>`,
+      category: "Land - Phase 1",
+      status: "Ongoing",
+      images: [
+        "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=1200",
+        "https://images.unsplash.com/photo-1613977257363-707ba9348227?q=80&w=1200",
+        "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200"
+      ]
     },
     {
-      title: 'Block C - Plot 45',
-      size: '3 Katha',
-      imageUrl: '/uploads/corner.jpg',
-      features: 'Corner Plot, Double Road Access, Utility Connected, Immediate Handover',
-      price: '28 Lac BDT',
-      zone: 'South Sector',
-      status: 'Sold Out',
+      title: "Lakeside Commercial Square",
+      description: `<h1>Lakeside Commercial Square</h1><p>A state-of-the-art business center designed for modern enterprises, corporate offices, and premium retail outlets. Located on the main 60ft boulevard with direct lake access and ample visitor parking.</p><h3>Key Features</h3><ul><li>Central Air Conditioning &amp; HVAC Systems</li><li>High-Speed Panoramic Elevators</li><li>Rooftop Restaurant &amp; Business Lounge</li><li>Fibre-Optic Internet &amp; 100% Power Backup</li></ul><p>Invest in retail spaces or full office floors with highly attractive rental yield projections.</p>`,
+      category: "Land - Phase 2",
+      status: "Upcoming",
+      images: [
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200",
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200"
+      ]
     },
     {
-      title: 'Block B - Plot 01',
-      size: '10 Katha',
-      imageUrl: '/uploads/executive.jpg',
-      features: 'Main Road Frontage, Near Lake and Park, 40ft Front Road, Ready for Construction',
-      price: '95 Lac BDT',
-      zone: 'Central Park',
-      status: 'Available',
-    },
-    {
-      title: 'Block D - Plot 08',
-      size: '3 Katha',
-      imageUrl: '/uploads/corner.jpg',
-      features: '30ft Road Access, Near Mosque, Fast Registration, Electricity Ready',
-      price: '26 Lac BDT',
-      zone: 'North Sector',
-      status: 'Available',
-    },
-    {
-      title: 'Block A - Plot 22',
-      size: '5 Katha',
-      imageUrl: '/uploads/lakeside.jpg',
-      features: 'Lake Front, Park Facing, Boundary Wall Ready, Utilities Connected',
-      price: '48 Lac BDT',
-      zone: 'Central Park',
-      status: 'Sold Out',
-    },
-    {
-      title: 'Block B - Plot 19',
-      size: '10 Katha',
-      imageUrl: '/uploads/executive.jpg',
-      features: '60ft Boulevard Access, Near Commercial Hub, Smart Grid Connection, Park Facing',
-      price: '88 Lac BDT',
-      zone: 'South Sector',
-      status: 'Available',
-    },
+      title: "Central Eco Park Residences",
+      description: `<h1>Central Eco Park Residences</h1><p>High-rise residential apartments with 360-degree views of our central park. Integrated with sustainable design principles to maximize natural light, cross-ventilation, and eco-friendly waste management.</p><h3>Key Features</h3><ul><li>Rooftop Jogging Track &amp; Sky Garden</li><li>Rainwater Harvesting &amp; Greywater Recycling</li><li>Fully Equipped Gymnasium &amp; Swimming Pool</li><li>Children's Safe Play Zone &amp; Daycare Center</li></ul><p>Perfect for modern urban families seeking convenience, community, and clean fresh air.</p>`,
+      category: "Apartment",
+      status: "Delivered",
+      images: [
+        "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1200",
+        "https://images.unsplash.com/photo-1512915922686-57c11dde9b6b?q=80&w=1200",
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200"
+      ]
+    }
   ];
 
   for (const proj of defaultProjects) {

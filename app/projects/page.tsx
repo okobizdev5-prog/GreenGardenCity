@@ -2,8 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { ProjectsClient } from "@/components/ProjectsClient";
 
 export const metadata = {
-  title: "Available Plots - Green Garden City",
-  description: "Browse premium residential plots, select from 3, 5, or 10 Katha configurations and book site visits directly.",
+  title: "Development Projects - Green Garden City",
+  description: "Explore our premium residential communities, commercial hubs, and eco-friendly development projects in Green Garden City.",
 };
 
 export const revalidate = 0;
@@ -16,12 +16,10 @@ export default async function ProjectsPage() {
   const plainProjects = projects.map(p => ({
     id: p.id,
     title: p.title,
-    size: p.size,
-    imageUrl: p.imageUrl,
-    features: p.features,
-    price: p.price,
-    zone: p.zone,
-    status: p.status,
+    description: p.description || "",
+    images: p.images || [],
+    category: p.category || "Phase 1",
+    status: p.status || "Ongoing",
   }));
 
   return <ProjectsClient initialProjects={plainProjects} />;

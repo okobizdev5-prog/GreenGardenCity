@@ -19,16 +19,14 @@ model User {
 }
 
 model Project {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  size      String
-  imageUrl  String?
-  features  String
-  price     String?
-  zone      String   @default("Central Park")
-  status    String   @default("Available")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  images      String[]
+  category    String   @default("Phase 1")
+  status      String   @default("Ongoing")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Booking {

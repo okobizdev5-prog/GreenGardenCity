@@ -129,7 +129,7 @@ export default function BookingsManager() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4.5 w-4.5" />
             <input 
               className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition text-sm font-medium text-gray-700" 
-              placeholder="Search by name, phone, or plot size..." 
+              placeholder="Search by name, phone, or project..." 
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -160,7 +160,7 @@ export default function BookingsManager() {
               <tr className="bg-gray-50 border-b border-gray-100">
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Date</th>
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Prospect Details</th>
-                <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Selected Plot Size</th>
+                <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Selected Project</th>
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider text-right">Actions</th>
               </tr>

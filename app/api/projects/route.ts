@@ -22,15 +22,15 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { title, size, imageUrl, features, price } = body;
+    const { title, description, images, category, status } = body;
 
     const project = await prisma.project.create({
       data: {
         title,
-        size,
-        imageUrl,
-        features,
-        price,
+        description,
+        images,
+        category: category || "Phase 1",
+        status: status || "Ongoing",
       },
     });
 

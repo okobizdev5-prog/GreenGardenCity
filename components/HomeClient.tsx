@@ -15,7 +15,8 @@ import {
   Mail, 
   MapPin, 
   CalendarDays,
-  Sparkles
+  Sparkles,
+  Image as ImageIcon
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { BookingModal } from "@/components/BookingModal";
@@ -23,12 +24,8 @@ import { BookingModal } from "@/components/BookingModal";
 type Project = {
   id: string;
   title: string;
-  size: string;
-  imageUrl: string | null;
-  features: string;
-  price: string | null;
-  zone: string;
-  status: string;
+  description: string;
+  images: string[];
 };
 
 type HomeClientProps = {
@@ -37,10 +34,11 @@ type HomeClientProps = {
 
 export function HomeClient({ initialProjects }: HomeClientProps) {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [selectedPlotSize, setSelectedPlotSize] = useState("3 Katha");
+  const [selectedProjectTitle, setSelectedProjectTitle] = useState("General Inquiry");
+  const [activeImageIndexes, setActiveImageIndexes] = useState<Record<string, number>>({});
 
-  const handleBookVisit = (plotSize: string = "3 Katha") => {
-    setSelectedPlotSize(plotSize);
+  const handleBookVisit = (projectTitle: string = "General Inquiry") => {
+    setSelectedProjectTitle(projectTitle);
     setIsBookingOpen(true);
   };
 
@@ -226,109 +224,129 @@ export function HomeClient({ initialProjects }: HomeClientProps) {
         </div>
       </section>
 
-      {/* Plot Listings Section */}
-      <section id="plots" className="py-20 bg-gray-50 border-t border-gray-100">
+      {/* Projects Showcase Section */}
+      <section id="plots" className="py-20 bg-gray-50 border-t border-gray-150">
         <div className="container mx-auto px-4 md:px-8 text-center max-w-3xl mb-16 space-y-4">
-          <span className="text-sm font-bold text-green-700 uppercase tracking-widest">Plot configurations</span>
+          <span className="text-sm font-bold text-green-700 uppercase tracking-widest">Master Blueprints</span>
           <h2 className="text-3xl md:text-4xl font-extrabold text-green-900 tracking-tight">
-            Available Land Plots
+            Development Projects
           </h2>
           <p className="text-gray-600">
-            Select a plot configuration that fits your dream project. Book a site visit to view the physical land mapping.
+            Explore our premium residential communities, smart commercial hubs, and green ecosystems. Plan your physical site visit today.
           </p>
         </div>
 
-        <div className="container mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {initialProjects.map((project) => (
-            <div 
-              key={project.id} 
-              className={`bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full ${
-                project.status === "Sold Out" ? "opacity-95" : ""
-              }`}
-            >
-              {/* Plot Image */}
-              <div className="relative aspect-video w-full overflow-hidden bg-gray-100">
-                {project.imageUrl ? (
-                  <img 
-                    src={project.imageUrl} 
-                    alt={project.title} 
-                    className="w-full h-full object-cover hover:scale-105 transition duration-500"
-                    onError={(e) => {
-                      // Fallback in case of image load error
-                      (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=600";
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
-                    <Trees className="h-12 w-12 text-gray-300 mb-2" />
-                    <span className="text-xs">No image uploaded</span>
-                  </div>
-                )}
-                <div className="absolute top-4 left-4 flex gap-2">
-                  <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider backdrop-blur-md shadow-sm border ${
-                    project.status === "Available" 
-                      ? "bg-green-700/90 text-white border-green-600/20" 
-                      : "bg-red-600/90 text-white border-red-500/20"
-                  }`}>
-                    {project.status}
-                  </span>
-                  <span className="bg-black/60 text-white text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-md border border-white/10 flex items-center gap-1">
-                    <MapPin className="h-3 w-3 text-amber-400" /> {project.zone}
-                  </span>
-                </div>
-              </div>
+        <div className="container mx-auto px-4 md:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {initialProjects.map((project) => {
+            const activeIdx = activeImageIndexes[project.id] || 0;
+            const currentImg = project.images && project.images.length > 0 ? project.images[activeIdx] : null;
+            const hasMultipleImages = project.images && project.images.length > 1;
 
-              {/* Card Details */}
-              <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="bg-amber-100 text-amber-900 text-xs font-bold px-2.5 py-1 rounded-md">
-                      {project.size}
-                    </span>
-                    {project.price && (
-                      <span className={`font-bold text-lg ${
-                        project.status === "Available" ? "text-green-700" : "text-gray-400 line-through"
-                      }`}>
-                        {project.price}
-                      </span>
+            const prevSlide = (e: React.MouseEvent) => {
+              e.stopPropagation();
+              if (!project.images || project.images.length === 0) return;
+              setActiveImageIndexes(prev => ({
+                ...prev,
+                [project.id]: (activeIdx - 1 + project.images.length) % project.images.length
+              }));
+            };
+
+            const nextSlide = (e: React.MouseEvent) => {
+              e.stopPropagation();
+              if (!project.images || project.images.length === 0) return;
+              setActiveImageIndexes(prev => ({
+                ...prev,
+                [project.id]: (activeIdx + 1) % project.images.length
+              }));
+            };
+
+            return (
+              <div 
+                key={project.id} 
+                className="bg-white rounded-2xl overflow-hidden border border-gray-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group"
+              >
+                {/* Project Image Showcase with Carousel Controls */}
+                <div className="relative aspect-video w-full overflow-hidden bg-gray-100 group/slider">
+                  <a href={`/projects/${project.id}`} className="block w-full h-full">
+                    {currentImg ? (
+                      <img 
+                        src={currentImg} 
+                        alt={project.title} 
+                        className="w-full h-full object-cover transition duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                        <ImageIcon className="h-12 w-12 text-gray-300 mb-2" />
+                        <span className="text-xs">No image uploaded</span>
+                      </div>
                     )}
-                  </div>
-                  
-                  <h3 className="text-xl font-bold text-gray-900 leading-tight">
-                    {project.title}
-                  </h3>
+                  </a>
 
-                  {/* Features list */}
-                  <ul className="space-y-2 text-sm text-gray-600">
-                    {project.features.split(",").map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2.5">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-700 mt-0.5">
-                          <Check className="h-3 w-3" />
-                        </span>
-                        <span className="text-gray-700">{feature.trim()}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  {/* Carousel Controls */}
+                  {hasMultipleImages && (
+                    <>
+                      <button
+                        onClick={prevSlide}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-green-700 text-white rounded-full p-1.5 transition opacity-0 group-hover/slider:opacity-100 shadow-sm z-10"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
+                      </button>
+                      <button
+                        onClick={nextSlide}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-green-700 text-white rounded-full p-1.5 transition opacity-0 group-hover/slider:opacity-100 shadow-sm z-10"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
+                      </button>
+
+                      {/* Dot indicators */}
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 bg-black/45 px-2.5 py-1 rounded-full backdrop-blur-xs z-10">
+                        {project.images.map((_, dotIdx) => (
+                          <span 
+                            key={dotIdx} 
+                            className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                              dotIdx === activeIdx ? "bg-white scale-125" : "bg-white/50"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                {project.status === "Available" ? (
-                  <button 
-                    onClick={() => handleBookVisit(project.size)}
-                    className="w-full bg-green-800 hover:bg-green-900 text-white font-semibold py-3 rounded-lg shadow-sm hover:shadow-md transition text-center text-sm"
-                  >
-                    Book Plot & Visit
-                  </button>
-                ) : (
-                  <button 
-                    disabled
-                    className="w-full bg-gray-200 text-gray-400 cursor-not-allowed font-semibold py-3 rounded-lg text-center text-sm"
-                  >
-                    Sold Out (Inquire Similar)
-                  </button>
-                )}
+                {/* Card Details */}
+                <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
+                  <div className="space-y-3">
+                    <a href={`/projects/${project.id}`} className="hover:text-green-800 transition block">
+                      <h3 className="text-xl font-bold text-gray-900 leading-tight hover:text-green-800">
+                        {project.title}
+                      </h3>
+                    </a>
+                    
+                    {/* Rich HTML description snippet */}
+                    <div 
+                      className="text-sm text-gray-600 line-clamp-5 prose prose-sm prose-green max-w-none leading-relaxed mt-2"
+                      dangerouslySetInnerHTML={{ __html: project.description }}
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <a 
+                      href={`/projects/${project.id}`}
+                      className="flex-1 bg-white hover:bg-gray-50 text-green-800 border border-green-200 font-semibold py-2.5 rounded-lg shadow-xs transition text-center text-xs flex items-center justify-center"
+                    >
+                      View Details
+                    </a>
+                    <button 
+                      onClick={() => handleBookVisit(project.title)}
+                      className="flex-1 bg-green-700 hover:bg-green-800 text-white font-semibold py-2.5 rounded-lg shadow-xs hover:shadow-md transition text-center text-xs"
+                    >
+                      Book Visit
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -422,15 +440,15 @@ export function HomeClient({ initialProjects }: HomeClientProps) {
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-amber-400 shrink-0" />
-                <span>+880 1712-345678</span>
+                <span>01898777431</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-amber-400 shrink-0" />
-                <span>info@greengardencity.com</span>
+                <span>greengardencitypurbachal@gmail.com</span>
               </li>
               <li className="flex items-center gap-3">
                 <MapPin className="h-4 w-4 text-amber-400 shrink-0" />
-                <span>Sector-15, Uttara, Dhaka, Bangladesh</span>
+                <span>Green Garden City, Kaliganj, Gazipur</span>
               </li>
             </ul>
           </div>
@@ -446,7 +464,7 @@ export function HomeClient({ initialProjects }: HomeClientProps) {
       <BookingModal 
         isOpen={isBookingOpen} 
         onClose={() => setIsBookingOpen(false)} 
-        initialPlot={selectedPlotSize}
+        initialPlot={selectedProjectTitle}
       />
     </div>
   );

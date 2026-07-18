@@ -22,24 +22,48 @@ export function BrochuresClient({ initialBrochures }: BrochuresClientProps) {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleDownload = (id: string, title: string, pdfUrl: string | null) => {
+  const getDownloadFilename = (url: string, title: string) => {
+    const fallback = `${title.replace(/\s+/g, "_")}.jpg`;
+    const name = url.split("/").pop()?.split("?")[0];
+    if (!name) return fallback;
+    if (name.match(/\.(jpg|jpeg|png)$/i)) return name;
+    return `${name}.jpg`;
+  };
+
+  const handleDownload = async (id: string, title: string, fileUrl: string | null) => {
+    if (!fileUrl) return;
+
     setDownloadingId(id);
-    setTimeout(() => {
-      setDownloadingId(null);
-      setSuccessMessage(`"${title}" downloaded successfully!`);
-      
-      // Simulate file download trigger
-      if (pdfUrl) {
-        const link = document.createElement("a");
-        link.href = pdfUrl;
-        link.download = pdfUrl.split("/").pop() || "brochure.pdf";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    try {
+      const response = await fetch(fileUrl, { mode: "cors" });
+      if (!response.ok) {
+        throw new Error(`Download failed with status ${response.status}`);
       }
-      
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = getDownloadFilename(fileUrl, title);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+
+      setSuccessMessage(`"${title}" downloaded successfully!`);
+    } catch (error) {
+      console.error("Brochure download error:", error);
+      setSuccessMessage("Download failed. Please try again.");
+    } finally {
+      setDownloadingId(null);
       setTimeout(() => setSuccessMessage(null), 4000);
-    }, 1500);
+    }
+  };
+
+  const handleView = (fileUrl: string | null) => {
+    if (fileUrl) {
+      window.open(fileUrl, "_blank");
+    }
   };
 
   return (
@@ -88,15 +112,24 @@ export function BrochuresClient({ initialBrochures }: BrochuresClientProps) {
                     <span className="text-xs">No Cover Image</span>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6">
-                  <button
-                    onClick={() => handleDownload(item.id, item.title, item.pdfUrl)}
-                    disabled={downloadingId !== null}
-                    className="bg-green-700 hover:bg-green-800 text-white font-semibold w-full py-3.5 rounded-lg flex items-center justify-center gap-2 transition active:scale-95 disabled:opacity-50 shadow-md"
-                  >
-                    <Download className="h-4 w-4" />
-                    {downloadingId === item.id ? "Preparing PDF..." : "Download PDF"}
-                  </button>
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-5">
+                  <div className="w-full max-w-xs space-y-3">
+                    <button
+                      onClick={() => handleView(item.imageUrl || item.pdfUrl)}
+                      disabled={!item.imageUrl && !item.pdfUrl}
+                      className="bg-white text-green-700 font-semibold w-full py-3.5 rounded-lg flex items-center justify-center gap-2 transition active:scale-95 shadow-sm hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      View Brochure
+                    </button>
+                    <button
+                      onClick={() => handleDownload(item.id, item.title, item.imageUrl || item.pdfUrl)}
+                      disabled={downloadingId !== null || (!item.imageUrl && !item.pdfUrl)}
+                      className="bg-green-700 hover:bg-green-800 text-white font-semibold w-full py-3.5 rounded-lg flex items-center justify-center gap-2 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 shadow-md"
+                    >
+                      <Download className="h-4 w-4" />
+                      {downloadingId === item.id ? "Preparing JPG..." : "Download JPG"}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -108,7 +141,7 @@ export function BrochuresClient({ initialBrochures }: BrochuresClientProps) {
                       {item.title}
                     </h3>
                     <span className="bg-green-50 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                      PDF
+                      {item.imageUrl ? "JPG" : "PDF"}
                     </span>
                   </div>
                   <p className="text-gray-500 text-sm leading-relaxed font-light">
@@ -121,7 +154,6 @@ export function BrochuresClient({ initialBrochures }: BrochuresClientProps) {
                     <Globe className="h-4 w-4 text-gray-400" />
                     <span>{item.languages}</span>
                   </div>
-                  <span className="font-semibold text-gray-400">{item.size}</span>
                 </div>
               </div>
             </div>
