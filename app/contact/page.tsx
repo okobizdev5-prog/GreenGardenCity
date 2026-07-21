@@ -55,7 +55,7 @@ export default function ContactPage() {
       <Navbar />
 
       <main className="flex-grow w-full max-w-7xl mx-auto px-4 md:px-8 py-24 md:py-32 space-y-16">
-        
+
         {/* Header */}
         <section className="text-center md:text-left max-w-3xl space-y-4">
           <span className="text-sm font-bold text-green-700 uppercase tracking-widest">Connect With Us</span>
@@ -63,17 +63,17 @@ export default function ContactPage() {
             Get in Touch
           </h1>
           <p className="text-gray-600 text-lg md:text-xl font-light leading-relaxed">
-            We're here to help you find your perfect plot. Reach out for inquiries, scheduling a visit, or any questions about Green Garden City.
+            We're here to help you find your perfect plot. Reach out for inquiries, scheduling a visit, or any questions about Greenleaf Holdings Ltd..
           </p>
         </section>
 
         {/* Form and info Bento Grid */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
+
           {/* Inquiry form */}
           <div className="lg:col-span-8 bg-white rounded-2xl p-6 md:p-8 border border-gray-100 shadow-sm relative overflow-hidden space-y-6">
             <div className="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>
-            
+
             <div className="space-y-2">
               <h2 className="text-2xl font-bold text-green-900 flex items-center gap-2">
                 Book a Visit
@@ -187,11 +187,11 @@ export default function ContactPage() {
 
           {/* Sidebar */}
           <div className="lg:col-span-4 flex flex-col gap-8">
-            
+
             {/* Info details */}
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-6">
               <h3 className="text-xl font-bold text-green-900 border-b border-gray-100 pb-3">Contact Information</h3>
-              
+
               <div className="space-y-4 text-sm">
                 <div className="flex items-start gap-3">
                   <div className="bg-green-50 p-2 rounded-full text-green-700 shrink-0 mt-0.5">
@@ -199,7 +199,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900">Head Office</p>
-                    <p className="text-gray-500">Green Garden City, Kaliganj, Gazipur</p>
+                    <p className="text-gray-500">Greenleaf Holdings Ltd., Kaliganj, Gazipur</p>
                   </div>
                 </div>
 
@@ -237,31 +237,39 @@ export default function ContactPage() {
 
             {/* Side visual Image */}
             <div className="rounded-2xl overflow-hidden shadow-md aspect-[4/3] bg-gray-100 border border-gray-100">
-              <img 
-                alt="Green Garden City Office" 
-                className="w-full h-full object-cover hover:scale-103 transition duration-500" 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrcsfqVe2Pu0z4W7z2WZVNbZ6bqHragKWIg0bekyZ2M-0MC8B3vYaNpOrZcPfD0C_jWJYHgaiP3gFqfYNwUYZmh-YW3x3-pbenu8QYo08DR5maIHnlCmg_6_e2hVBEMr1q831gwsOQwFZlDJCUoxi9u09FqemBNbs-HAfF3B-f_okl2-uu-nzOEuRKNB4j7R-vyhA-35aTHd5UsoQ8yct3mJX70CwFp9iy3mGQoXx1aWYC9b2TT4xd4cQlQDlLSM6qig" 
+              <img
+                alt="Greenleaf Holdings Ltd. Office"
+                className="w-full h-full object-cover hover:scale-103 transition duration-500"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrcsfqVe2Pu0z4W7z2WZVNbZ6bqHragKWIg0bekyZ2M-0MC8B3vYaNpOrZcPfD0C_jWJYHgaiP3gFqfYNwUYZmh-YW3x3-pbenu8QYo08DR5maIHnlCmg_6_e2hVBEMr1q831gwsOQwFZlDJCUoxi9u09FqemBNbs-HAfF3B-f_okl2-uu-nzOEuRKNB4j7R-vyhA-35aTHd5UsoQ8yct3mJX70CwFp9iy3mGQoXx1aWYC9b2TT4xd4cQlQDlLSM6qig"
               />
             </div>
           </div>
         </section>
 
-        {/* Map Representation */}
-        <section className="w-full h-72 md:h-96 rounded-2xl overflow-hidden border border-gray-200/60 relative">
-          <img 
-            className="w-full h-full object-cover" 
-            alt="Eco District Sales Center Map" 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5OjrrdT6mgctFErq7pDSLa_foE9a00W_7xH7hERaFPF5951eKEuC_4HWtKGWPhVWxAMwERrCmYNZCyPNwEbRU2T27554RuBZ8v2SBJ5eiE0qy2L9SUMFv5ZxnXKnFdWtcoDlxoKqqIlvsU6av3nqzkae0JCCNMfo3SXJN0dkMAtf2vT36Vr3r5p4zWRv-qH6Rn4Xh4lTzWyD3CIJ3-3UBp5NSXwrcmMzsXe08RBPIJDGBoXDX_rRM" 
-          />
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="bg-white/95 backdrop-blur-sm p-5 rounded-2xl shadow-xl flex flex-col items-center pointer-events-auto border border-green-700/10">
-              <Compass className="h-10 w-10 text-amber-500 mb-2 animate-bounce" />
-              <p className="text-sm font-bold text-green-950 text-center leading-tight">
-                Green Garden City<br />
-                <span className="text-xs text-gray-500 font-semibold">Sales & Information Center</span>
-              </p>
+        {/* Real Google Location Map Representation */}
+        <section className="w-full h-80 md:h-[400px] rounded-2xl overflow-hidden border border-gray-200 shadow-md relative bg-white flex flex-col">
+          <div className="bg-green-950 text-white px-4 py-3 flex items-center justify-between gap-2 z-10">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold min-w-0">
+              <Compass className="h-4 w-4 text-amber-400 shrink-0" />
+              <span className="truncate">Greenleaf Holdings Ltd. Location: Kaliganj, Gazipur</span>
             </div>
+            <a
+              href="https://maps.google.com/?q=Kaliganj,Gazipur,Bangladesh"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xxs font-extrabold bg-amber-400 text-green-950 px-3 py-1 rounded-lg hover:bg-amber-300 transition whitespace-nowrap shrink-0"
+            >
+              Open in Google Maps App 📍
+            </a>
           </div>
+          <iframe
+            title="Greenleaf Holdings Ltd. Contact Map"
+            src="https://maps.google.com/maps?q=Kaliganj,%20Gazipur,%20Bangladesh&t=&z=14&ie=UTF8&iwloc=&output=embed"
+            className="w-full flex-1 border-0"
+            allowFullScreen={true}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          ></iframe>
         </section>
 
       </main>
@@ -269,14 +277,14 @@ export default function ContactPage() {
       {/* Footer */}
       <footer className="bg-green-950 text-gray-300 pt-16 pb-8 border-t border-green-900 mt-auto">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl grid grid-cols-1 md:grid-cols-3 items-center gap-8 mb-12">
-          <div className="text-xl font-bold text-white tracking-wide">Green Garden City</div>
+          <div className="text-xl font-bold text-white tracking-wide">Greenleaf Holdings Ltd.</div>
           <div className="flex flex-wrap justify-center gap-6 text-sm">
             <a href="#" className="hover:text-amber-400 transition">Privacy Policy</a>
             <a href="#" className="hover:text-amber-400 transition">Terms of Service</a>
             <a href="/contact" className="hover:text-amber-400 transition">Contact Us</a>
           </div>
           <div className="text-sm text-center md:text-right text-green-100/50">
-            &copy; {new Date().getFullYear()} Green Garden City. All rights reserved.
+            &copy; {new Date().getFullYear()} Greenleaf Holdings Ltd.. All rights reserved.
           </div>
         </div>
       </footer>

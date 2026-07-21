@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Green Garden City | Future of Urban Living",
+  title: " | Real Estate",
   description: "A testament to the future of urban dwelling. Experience the tranquility of nature with modern technology.",
 };
 

@@ -24,7 +24,7 @@ async function main() {
   const defaultProjects = [
     {
       title: "Green Garden Premium Villas",
-      description: `<h1>Green Garden Premium Villas</h1><p>Experience ultra-luxury living in our flagship villa project. Surrounded by natural lakes and private gardens, these villas offer the perfect sanctuary for your family.</p><h3>Key Features</h3><ul><li>Private Infinity Pools &amp; Sun Decks</li><li>Smart Home Automation &amp; Centralized AC</li><li>Renewable Solar Power Grid Connection</li><li>24/7 Gated Security &amp; CCTV Surveillance</li></ul><p>Located in the heart of Green Garden City, each villa layout is customizable to fit your architectural preferences.</p>`,
+      description: `<h1>Green Garden Premium Villas</h1><p>Experience ultra-luxury living in our flagship villa project. Surrounded by natural lakes and private gardens, these villas offer the perfect sanctuary for your family.</p><h3>Key Features</h3><ul><li>Private Infinity Pools &amp; Sun Decks</li><li>Smart Home Automation &amp; Centralized AC</li><li>Renewable Solar Power Grid Connection</li><li>24/7 Gated Security &amp; CCTV Surveillance</li></ul><p>Located in the heart of Greenleaf Holdings Ltd., each villa layout is customizable to fit your architectural preferences.</p>`,
       category: "Land - Phase 1",
       status: "Ongoing",
       images: [
@@ -109,7 +109,7 @@ async function main() {
       title: 'Upcoming Farmers Market in Central Park',
       category: 'Community',
       date: 'Oct 18, 2026',
-      summary: 'Join us this weekend as local vendors bring the freshest organic produce directly to the heart of Green Garden City. Connect with neighbors and support green initiatives.',
+      summary: 'Join us this weekend as local vendors bring the freshest organic produce directly to the heart of Greenleaf Holdings Ltd.. Connect with neighbors and support green initiatives.',
       imageUrl: '',
       featured: false,
       specialCard: true,
@@ -136,7 +136,7 @@ async function main() {
       title: 'Understanding Our Solar Grid Initiatives',
       category: 'Sustainability',
       date: 'Sep 28, 2026',
-      summary: 'How Green Garden City is working towards a net-zero carbon footprint through integrated community solar power arrays and clean energy sharing.',
+      summary: 'How Greenleaf Holdings Ltd. is working towards a net-zero carbon footprint through integrated community solar power arrays and clean energy sharing.',
       imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD5R2q8tNZJM_oHg6bDf81jrzlva67-eplCPk-UGyulKjjOn5KM9vheIgEm92v-XBS7JytLSfQj9-3fvhb3h5BQIgooRpSm-lMFTM5Jv3GdFKy4_pFAwpmGq_37dR0UgowDhV7xPIWf_xZysLtA6bENHJ_gqrMG_jyBxl_rTOjlCddU6P6IUFczHehRWgQ-RqppSB35Ai0i1BHBDDBb82MXsjSGINZwkC7mUs6k5mFLLUBa-ZtV05Rc',
       featured: false,
       specialCard: false,

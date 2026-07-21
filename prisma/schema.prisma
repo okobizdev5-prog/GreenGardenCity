@@ -19,14 +19,15 @@ model User {
 }
 
 model Project {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
-  description String
-  images      String[]
-  category    String   @default("Phase 1")
-  status      String   @default("Ongoing")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  description    String
+  images         String[]
+  category       String   @default("Phase 1")
+  status         String   @default("Ongoing")
+  availablePlots String[] @default([])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model Booking {
@@ -75,4 +76,19 @@ model TeamMember {
   updatedAt DateTime @updatedAt
 }
 
-
+model Banner {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  badgeText        String   @default("100% GATED & SECURE ECO-CITY")
+  title            String   @default("Discover the Future of")
+  highlightTitle   String   @default("Urban Living")
+  subtitle         String   @default("Experience the perfect harmony of modern architecture, advanced smart facilities, and pristine natural serenity. Your dream plot awaits at Greenleaf Holdings Ltd..")
+  bgImage          String?  @default("/hero_background.png")
+  highlights       String[] @default(["Immediate Plot Registration", "Electricity & Gas Connections Ready", "15 Mins Drive from Hazrat Shahjalal Airport", "Flexible Installment Plans Available"])
+  primaryBtnText   String   @default("Book a Site Visit")
+  primaryBtnLink   String   @default("#booking")
+  secondaryBtnText String   @default("Explore Plots")
+  secondaryBtnLink String   @default("#plots")
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

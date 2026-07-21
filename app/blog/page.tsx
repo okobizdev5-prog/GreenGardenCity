@@ -2,8 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { BlogClient } from "@/components/BlogClient";
 
 export const metadata = {
-  title: "Insights & Life - Green Garden City",
-  description: "Read updates, design details, and community stories from Green Garden City.",
+  title: "Insights & Life - Greenleaf Holdings Ltd.",
+  description: "Read updates, design details, and community stories from Greenleaf Holdings Ltd..",
 };
 
 export const revalidate = 0;

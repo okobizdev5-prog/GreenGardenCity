@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { ProjectsClient } from "@/components/ProjectsClient";
+import { parsePlotsFromProject } from "@/lib/projectUtils";
 
 export const metadata = {
-  title: "Development Projects - Green Garden City",
-  description: "Explore our premium residential communities, commercial hubs, and eco-friendly development projects in Green Garden City.",
+  title: "Development Projects - Greenleaf Holdings Ltd.",
+  description: "Explore our premium residential communities, commercial hubs, and eco-friendly development projects in Greenleaf Holdings Ltd..",
 };
 
 export const revalidate = 0;
@@ -20,6 +21,7 @@ export default async function ProjectsPage() {
     images: p.images || [],
     category: p.category || "Phase 1",
     status: p.status || "Ongoing",
+    availablePlots: parsePlotsFromProject(p),
   }));
 
   return <ProjectsClient initialProjects={plainProjects} />;

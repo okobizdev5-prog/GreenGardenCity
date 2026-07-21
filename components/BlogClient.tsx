@@ -27,12 +27,12 @@ export function BlogClient({ initialPosts }: BlogClientProps) {
 
   // Filter logic
   const filteredArticles = initialPosts.filter((article) => {
-    const matchesSearch = 
+    const matchesSearch =
       article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       article.summary.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesCategory = selectedCategory === "All" || article.category === selectedCategory;
-    
+
     return matchesSearch && matchesCategory;
   });
 
@@ -41,7 +41,7 @@ export function BlogClient({ initialPosts }: BlogClientProps) {
       <Navbar />
 
       <main className="flex-grow w-full max-w-7xl mx-auto px-4 md:px-8 py-24 md:py-32 space-y-12">
-        
+
         {/* Header & Filter Controls */}
         <section className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div className="max-w-2xl space-y-4">
@@ -50,10 +50,10 @@ export function BlogClient({ initialPosts }: BlogClientProps) {
               Insights & Life
             </h1>
             <p className="text-gray-600 text-lg font-light leading-relaxed">
-              Explore stories on sustainable urban living, modern architecture, and community life in Green Garden City.
+              Explore stories on sustainable urban living, modern architecture, and community life in Greenleaf Holdings Ltd..
             </p>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
             {/* Search */}
             <div className="relative w-full sm:w-64">
@@ -66,18 +66,17 @@ export function BlogClient({ initialPosts }: BlogClientProps) {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            
+
             {/* Categories */}
             <div className="flex gap-2 overflow-x-auto pb-1 max-w-full scrollbar-none">
               {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`whitespace-nowrap px-4 py-2 text-xs font-semibold rounded-full border transition ${
-                    selectedCategory === cat
+                  className={`whitespace-nowrap px-4 py-2 text-xs font-semibold rounded-full border transition ${selectedCategory === cat
                       ? "bg-green-700 text-white border-green-600 shadow-sm"
                       : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                  }`}
+                    }`}
                 >
                   {cat}
                 </button>
@@ -88,19 +87,19 @@ export function BlogClient({ initialPosts }: BlogClientProps) {
 
         {/* Bento Grid articles */}
         <section className="grid grid-cols-1 md:grid-cols-12 gap-8">
-          
+
           {/* Featured Article */}
           {filteredArticles.filter(a => a.featured).map((article) => (
-            <article 
-              key={article.id} 
+            <article
+              key={article.id}
               className="md:col-span-8 bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col lg:flex-row group cursor-pointer"
             >
               <div className="lg:w-3/5 h-64 lg:h-auto relative overflow-hidden bg-gray-100">
                 {article.imageUrl ? (
-                  <img 
-                    className="w-full h-full object-cover group-hover:scale-103 transition duration-500" 
-                    src={article.imageUrl} 
-                    alt={article.title} 
+                  <img
+                    className="w-full h-full object-cover group-hover:scale-103 transition duration-500"
+                    src={article.imageUrl}
+                    alt={article.title}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -134,8 +133,8 @@ export function BlogClient({ initialPosts }: BlogClientProps) {
 
           {/* Special Banner Card */}
           {filteredArticles.filter(a => a.specialCard).map((article) => (
-            <article 
-              key={article.id} 
+            <article
+              key={article.id}
               className="md:col-span-4 bg-green-800 text-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group cursor-pointer relative overflow-hidden"
             >
               <div className="absolute -right-8 -top-8 w-24 h-24 rounded-full bg-green-700/40 blur-xl"></div>
@@ -160,16 +159,16 @@ export function BlogClient({ initialPosts }: BlogClientProps) {
 
           {/* Standard cards */}
           {filteredArticles.filter(a => !a.featured && !a.specialCard).map((article) => (
-            <article 
-              key={article.id} 
+            <article
+              key={article.id}
               className="md:col-span-4 bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group cursor-pointer"
             >
               <div className="h-48 w-full overflow-hidden bg-gray-100 relative">
                 {article.imageUrl ? (
-                  <img 
-                    className="w-full h-full object-cover group-hover:scale-103 transition duration-500" 
-                    src={article.imageUrl} 
-                    alt={article.title} 
+                  <img
+                    className="w-full h-full object-cover group-hover:scale-103 transition duration-500"
+                    src={article.imageUrl}
+                    alt={article.title}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-300">
@@ -224,14 +223,14 @@ export function BlogClient({ initialPosts }: BlogClientProps) {
       {/* Footer */}
       <footer className="bg-green-950 text-gray-300 pt-16 pb-8 border-t border-green-900 mt-auto">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl grid grid-cols-1 md:grid-cols-3 items-center gap-8 mb-12">
-          <div className="text-xl font-bold text-white tracking-wide">Green Garden City</div>
+          <div className="text-xl font-bold text-white tracking-wide">Greenleaf Holdings Ltd.</div>
           <div className="flex flex-wrap justify-center gap-6 text-sm">
             <a href="#" className="hover:text-amber-400 transition">Privacy Policy</a>
             <a href="#" className="hover:text-amber-400 transition">Terms of Service</a>
             <a href="/contact" className="hover:text-amber-400 transition">Contact Us</a>
           </div>
           <div className="text-sm text-center md:text-right text-green-100/50">
-            &copy; {new Date().getFullYear()} Green Garden City. All rights reserved.
+            &copy; {new Date().getFullYear()} Greenleaf Holdings Ltd.. All rights reserved.
           </div>
         </div>
       </footer>

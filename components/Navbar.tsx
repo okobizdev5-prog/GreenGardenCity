@@ -65,10 +65,16 @@ export function Navbar({ onBookClick }: NavbarProps) {
     return !cat.includes("apartment") && !cat.includes("flat");
   });
 
-  const getLandProjects = (status: string, phase: string) => {
+  const dynamicLandCategories = Array.from(
+    new Set(landProjects.map(p => p.category || "Land - Phase 1"))
+  );
+
+  const getLandProjects = (status: string, phaseCategory: string) => {
     return landProjects.filter(p => {
       const isStatusMatch = (p.status || "").toLowerCase() === status.toLowerCase();
-      const isPhaseMatch = (p.category || "").toLowerCase().includes(phase.toLowerCase());
+      const catLower = (p.category || "").toLowerCase();
+      const targetLower = phaseCategory.toLowerCase();
+      const isPhaseMatch = catLower === targetLower || catLower.includes(targetLower) || targetLower.includes(catLower);
       return isStatusMatch && isPhaseMatch;
     });
   };
@@ -86,15 +92,14 @@ export function Navbar({ onBookClick }: NavbarProps) {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
-        isScrolled 
-          ? "bg-white/95 backdrop-blur-md shadow-sm py-3 border-b border-gray-100" 
+      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${isScrolled
+          ? "bg-white/95 backdrop-blur-md shadow-sm py-3 border-b border-gray-100"
           : "bg-white py-4"
-      }`}
+        }`}
     >
       <div className="container mx-auto px-4 md:px-8 flex justify-between items-center max-w-7xl">
         <Link href="/" className="font-bold text-2xl text-green-700 tracking-tight flex items-center gap-1 hover:opacity-90">
-          Green Garden City
+          Greenleaf Holdings Ltd.
         </Link>
 
         {/* Desktop Nav */}
@@ -107,11 +112,10 @@ export function Navbar({ onBookClick }: NavbarProps) {
                 <div key={link.name} className="relative group py-2">
                   <Link
                     href={link.href}
-                    className={`text-sm font-medium px-4 py-2 rounded-lg transition-all inline-flex items-center gap-1 ${
-                      isActive || pathname.includes("category=land")
-                        ? "text-green-700 bg-green-50 font-bold" 
+                    className={`text-sm font-medium px-4 py-2 rounded-lg transition-all inline-flex items-center gap-1 ${isActive || pathname.includes("category=land")
+                        ? "text-green-700 bg-green-50 font-bold"
                         : "text-gray-600 hover:text-green-700 hover:bg-gray-50"
-                    }`}
+                      }`}
                   >
                     {link.name}
                     <ChevronDown className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180 text-gray-400 group-hover:text-green-700" />
@@ -120,47 +124,40 @@ export function Navbar({ onBookClick }: NavbarProps) {
                   {/* Dropdown Menu for Land */}
                   <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[600px] bg-white border border-gray-150 rounded-2xl shadow-xl py-6 px-6 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 grid grid-cols-3 gap-6">
                     {statuses.map((status) => {
-                      const phase1Projs = getLandProjects(status, "Phase 1");
-                      const phase2Projs = getLandProjects(status, "Phase 2");
-                      const hasProjects = phase1Projs.length > 0 || phase2Projs.length > 0;
+                      const statusProjs = landProjects.filter(
+                        (p) => (p.status || "").toLowerCase() === status.toLowerCase()
+                      );
+                      const hasProjects = statusProjs.length > 0;
 
                       return (
                         <div key={status} className="space-y-4 text-left">
                           <h4 className="text-xs font-extrabold text-green-800 uppercase tracking-wider border-b border-gray-100 pb-1.5 flex items-center gap-1.5">
-                            <span className={`w-2 h-2 rounded-full ${
-                              status === "Ongoing" ? "bg-blue-500 animate-pulse" :
-                              status === "Upcoming" ? "bg-amber-500" :
-                              "bg-green-500"
-                            }`} />
+                            <span className={`w-2 h-2 rounded-full ${status === "Ongoing" ? "bg-blue-500 animate-pulse" :
+                                status === "Upcoming" ? "bg-amber-500" :
+                                  "bg-green-500"
+                              }`} />
                             {status}
                           </h4>
-                          
+
                           {hasProjects ? (
                             <div className="space-y-3">
-                              {phase1Projs.length > 0 && (
-                                <div className="space-y-1">
-                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Phase 1</span>
-                                  <div className="flex flex-col gap-1 pl-1">
-                                    {phase1Projs.map((p) => (
-                                      <Link key={p.id} href={`/projects/${p.id}`} className="text-sm font-semibold text-gray-700 hover:text-green-700 transition line-clamp-1">
-                                        {p.title}
-                                      </Link>
-                                    ))}
+                              {dynamicLandCategories.map((cat) => {
+                                const catProjs = getLandProjects(status, cat);
+                                if (catProjs.length === 0) return null;
+
+                                return (
+                                  <div key={cat} className="space-y-1">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">{cat}</span>
+                                    <div className="flex flex-col gap-1 pl-1">
+                                      {catProjs.map((p) => (
+                                        <Link key={p.id} href={`/projects/${p.id}`} className="text-sm font-semibold text-gray-700 hover:text-green-700 transition line-clamp-1">
+                                          {p.title}
+                                        </Link>
+                                      ))}
+                                    </div>
                                   </div>
-                                </div>
-                              )}
-                              {phase2Projs.length > 0 && (
-                                <div className="space-y-1">
-                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Phase 2</span>
-                                  <div className="flex flex-col gap-1 pl-1">
-                                    {phase2Projs.map((p) => (
-                                      <Link key={p.id} href={`/projects/${p.id}`} className="text-sm font-semibold text-gray-700 hover:text-green-700 transition line-clamp-1">
-                                        {p.title}
-                                      </Link>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
+                                );
+                              })}
                             </div>
                           ) : (
                             <span className="text-xs font-semibold text-gray-400 italic">No projects yet</span>
@@ -178,11 +175,10 @@ export function Navbar({ onBookClick }: NavbarProps) {
                 <div key={link.name} className="relative group py-2">
                   <Link
                     href={link.href}
-                    className={`text-sm font-medium px-4 py-2 rounded-lg transition-all inline-flex items-center gap-1 ${
-                      isActive || pathname.includes("category=apartment")
-                        ? "text-green-700 bg-green-50 font-bold" 
+                    className={`text-sm font-medium px-4 py-2 rounded-lg transition-all inline-flex items-center gap-1 ${isActive || pathname.includes("category=apartment")
+                        ? "text-green-700 bg-green-50 font-bold"
                         : "text-gray-600 hover:text-green-700 hover:bg-gray-50"
-                    }`}
+                      }`}
                   >
                     {link.name}
                     <ChevronDown className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180 text-gray-400 group-hover:text-green-700" />
@@ -197,14 +193,13 @@ export function Navbar({ onBookClick }: NavbarProps) {
                       return (
                         <div key={status} className="space-y-4 text-left">
                           <h4 className="text-xs font-extrabold text-green-800 uppercase tracking-wider border-b border-gray-100 pb-1.5 flex items-center gap-1.5">
-                            <span className={`w-2 h-2 rounded-full ${
-                              status === "Ongoing" ? "bg-blue-500 animate-pulse" :
-                              status === "Upcoming" ? "bg-amber-500" :
-                              "bg-green-500"
-                            }`} />
+                            <span className={`w-2 h-2 rounded-full ${status === "Ongoing" ? "bg-blue-500 animate-pulse" :
+                                status === "Upcoming" ? "bg-amber-500" :
+                                  "bg-green-500"
+                              }`} />
                             {status}
                           </h4>
-                          
+
                           {hasProjects ? (
                             <div className="flex flex-col gap-1.5 pl-1">
                               {projs.map((p) => (
@@ -228,11 +223,10 @@ export function Navbar({ onBookClick }: NavbarProps) {
               <Link
                 key={link.name}
                 href={link.href}
-                className={`text-sm font-medium px-4 py-2 rounded-lg transition-all ${
-                  isActive 
-                    ? "text-green-700 bg-green-50 font-bold" 
+                className={`text-sm font-medium px-4 py-2 rounded-lg transition-all ${isActive
+                    ? "text-green-700 bg-green-50 font-bold"
                     : "text-gray-600 hover:text-green-700 hover:bg-gray-50"
-                }`}
+                  }`}
               >
                 {link.name}
               </Link>
@@ -289,9 +283,10 @@ export function Navbar({ onBookClick }: NavbarProps) {
                   {mobileLandOpen && (
                     <div className="pl-4 flex flex-col gap-2.5 py-2.5 border-l-2 border-green-700/30 ml-4 animate-in slide-in-from-top-2 duration-200">
                       {statuses.map((status) => {
-                        const phase1Projs = getLandProjects(status, "Phase 1");
-                        const phase2Projs = getLandProjects(status, "Phase 2");
-                        const hasProjects = phase1Projs.length > 0 || phase2Projs.length > 0;
+                        const statusProjs = landProjects.filter(
+                          (p) => (p.status || "").toLowerCase() === status.toLowerCase()
+                        );
+                        const hasProjects = statusProjs.length > 0;
                         const isStatusOpen = !!mobileLandStatusOpen[status];
 
                         return (
@@ -301,11 +296,10 @@ export function Navbar({ onBookClick }: NavbarProps) {
                               className="flex justify-between items-center w-full text-left text-sm font-bold text-green-800 px-3 py-1.5 hover:bg-gray-50/50 rounded-md transition"
                             >
                               <span className="flex items-center gap-1.5">
-                                <span className={`w-1.5 h-1.5 rounded-full ${
-                                  status === "Ongoing" ? "bg-blue-500" :
-                                  status === "Upcoming" ? "bg-amber-500" :
-                                  "bg-green-500"
-                                }`} />
+                                <span className={`w-1.5 h-1.5 rounded-full ${status === "Ongoing" ? "bg-blue-500" :
+                                    status === "Upcoming" ? "bg-amber-500" :
+                                      "bg-green-500"
+                                  }`} />
                                 {status}
                               </span>
                               <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isStatusOpen ? "rotate-180" : ""}`} />
@@ -315,39 +309,29 @@ export function Navbar({ onBookClick }: NavbarProps) {
                               <div className="pl-4 flex flex-col gap-2 mt-1 animate-in slide-in-from-top-1 duration-150">
                                 {hasProjects ? (
                                   <>
-                                    {phase1Projs.length > 0 && (
-                                      <div className="space-y-1">
-                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block">Phase 1</span>
-                                        {phase1Projs.map((p) => (
-                                          <Link
-                                            key={p.id}
-                                            href={`/projects/${p.id}`}
-                                            className="text-xs font-semibold text-gray-650 hover:text-green-700 block py-0.5"
-                                            onClick={() => setIsMobileMenuOpen(false)}
-                                          >
-                                            {p.title}
-                                          </Link>
-                                        ))}
-                                      </div>
-                                    )}
-                                    {phase2Projs.length > 0 && (
-                                      <div className="space-y-1">
-                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block">Phase 2</span>
-                                        {phase2Projs.map((p) => (
-                                          <Link
-                                            key={p.id}
-                                            href={`/projects/${p.id}`}
-                                            className="text-xs font-semibold text-gray-650 hover:text-green-700 block py-0.5"
-                                            onClick={() => setIsMobileMenuOpen(false)}
-                                          >
-                                            {p.title}
-                                          </Link>
-                                        ))}
-                                      </div>
-                                    )}
+                                    {dynamicLandCategories.map((cat) => {
+                                      const catProjs = getLandProjects(status, cat);
+                                      if (catProjs.length === 0) return null;
+
+                                      return (
+                                        <div key={cat} className="space-y-1">
+                                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block">{cat}</span>
+                                          {catProjs.map((p) => (
+                                            <Link
+                                              key={p.id}
+                                              href={`/projects/${p.id}`}
+                                              className="text-xs font-semibold text-gray-650 hover:text-green-700 block py-0.5"
+                                              onClick={() => setIsMobileMenuOpen(false)}
+                                            >
+                                              {p.title}
+                                            </Link>
+                                          ))}
+                                        </div>
+                                      );
+                                    })}
                                   </>
                                 ) : (
-                                  <span className="text-xs text-gray-400 italic pl-2">No projects yet</span>
+                                  <span className="text-xs font-medium text-gray-400 italic py-1">No projects available</span>
                                 )}
                               </div>
                             )}
@@ -385,11 +369,10 @@ export function Navbar({ onBookClick }: NavbarProps) {
                               className="flex justify-between items-center w-full text-left text-sm font-bold text-green-800 px-3 py-1.5 hover:bg-gray-50/50 rounded-md transition"
                             >
                               <span className="flex items-center gap-1.5">
-                                <span className={`w-1.5 h-1.5 rounded-full ${
-                                  status === "Ongoing" ? "bg-blue-500" :
-                                  status === "Upcoming" ? "bg-amber-500" :
-                                  "bg-green-500"
-                                }`} />
+                                <span className={`w-1.5 h-1.5 rounded-full ${status === "Ongoing" ? "bg-blue-500" :
+                                    status === "Upcoming" ? "bg-amber-500" :
+                                      "bg-green-500"
+                                  }`} />
                                 {status}
                               </span>
                               <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isStatusOpen ? "rotate-180" : ""}`} />
@@ -426,11 +409,10 @@ export function Navbar({ onBookClick }: NavbarProps) {
               <Link
                 key={link.name}
                 href={link.href}
-                className={`text-base font-semibold px-4 py-3 rounded-lg ${
-                  isActive 
-                    ? "text-green-700 bg-green-50 font-bold" 
+                className={`text-base font-semibold px-4 py-3 rounded-lg ${isActive
+                    ? "text-green-700 bg-green-50 font-bold"
                     : "text-gray-700 hover:text-green-700 hover:bg-gray-50"
-                }`}
+                  }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {link.name}

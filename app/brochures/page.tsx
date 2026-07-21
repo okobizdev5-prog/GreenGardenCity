@@ -2,8 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { BrochuresClient } from "@/components/BrochuresClient";
 
 export const metadata = {
-  title: "Project Brochures - Green Garden City",
-  description: "Download detailed layouts, amenity guides, and plot zoning blueprints for Green Garden City.",
+  title: "Project Brochures - Greenleaf Holdings Ltd.",
+  description: "Download detailed layouts, amenity guides, and plot zoning blueprints for Greenleaf Holdings Ltd..",
 };
 
 export const revalidate = 0;

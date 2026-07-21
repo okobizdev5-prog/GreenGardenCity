@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { ProjectDetailsClient } from "@/components/ProjectDetailsClient";
+import { parsePlotsFromProject } from "@/lib/projectUtils";
 
 export const revalidate = 0;
 
@@ -16,13 +17,13 @@ export async function generateMetadata({ params }: PageProps) {
 
   if (!project) {
     return {
-      title: "Project Not Found - Green Garden City",
+      title: "Project Not Found - Greenleaf Holdings Ltd.",
     };
   }
 
   return {
-    title: `${project.title} - Green Garden City`,
-    description: `Explore the master plan, amenities, and details of ${project.title} in Green Garden City.`,
+    title: `${project.title} - Greenleaf Holdings Ltd.`,
+    description: `Explore the master plan, amenities, and details of ${project.title} in Greenleaf Holdings Ltd..`,
   };
 }
 
@@ -43,6 +44,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     images: project.images,
     category: project.category || "Phase 1",
     status: project.status || "Ongoing",
+    availablePlots: parsePlotsFromProject(project),
   };
 
   return <ProjectDetailsClient project={plainProject} />;

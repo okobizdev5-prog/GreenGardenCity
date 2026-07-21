@@ -71,7 +71,7 @@ export function BrochuresClient({ initialBrochures }: BrochuresClientProps) {
       <Navbar />
 
       <main className="flex-grow w-full max-w-7xl mx-auto px-4 md:px-8 py-24 md:py-32 space-y-16">
-        
+
         {/* Header */}
         <section className="text-center max-w-3xl mx-auto space-y-4">
           <span className="text-sm font-bold text-green-700 uppercase tracking-widest">Document Center</span>
@@ -79,7 +79,7 @@ export function BrochuresClient({ initialBrochures }: BrochuresClientProps) {
             Project Brochures
           </h1>
           <p className="text-gray-600 text-lg font-light leading-relaxed">
-            Explore the detailed vision, master plans, and exclusive features of Green Garden City. Download our comprehensive digital brochures to discover your future organic urban lifestyle.
+            Explore the detailed vision, master plans, and exclusive features of Greenleaf Holdings Ltd.. Download our comprehensive digital brochures to discover your future organic urban lifestyle.
           </p>
         </section>
 
@@ -165,14 +165,14 @@ export function BrochuresClient({ initialBrochures }: BrochuresClientProps) {
       {/* Footer */}
       <footer className="bg-green-950 text-gray-300 pt-16 pb-8 border-t border-green-900 mt-auto">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl grid grid-cols-1 md:grid-cols-3 items-center gap-8 mb-12">
-          <div className="text-xl font-bold text-white tracking-wide">Green Garden City</div>
+          <div className="text-xl font-bold text-white tracking-wide">Greenleaf Holdings Ltd.</div>
           <div className="flex flex-wrap justify-center gap-6 text-sm">
             <a href="#" className="hover:text-amber-400 transition">Privacy Policy</a>
             <a href="#" className="hover:text-amber-400 transition">Terms of Service</a>
             <a href="/contact" className="hover:text-amber-400 transition">Contact Us</a>
           </div>
           <div className="text-sm text-center md:text-right text-green-100/50">
-            &copy; {new Date().getFullYear()} Green Garden City. All rights reserved.
+            &copy; {new Date().getFullYear()} Greenleaf Holdings Ltd.. All rights reserved.
           </div>
         </div>
       </footer>

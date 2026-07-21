@@ -9,15 +9,19 @@ import {
   X,
   Sparkles,
   Loader2,
-  BookOpen
+  BookOpen,
+  Edit3,
+  Compass
 } from "lucide-react";
 import { 
   getProjectsAction, 
   createProjectAction, 
+  updateProjectAction,
   deleteProjectAction,
   seedDefaultProjectsAction
 } from "@/app/actions/projectActions";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { PlotObject, parsePlotsFromProject, normalizePlotObject } from "@/lib/projectUtils";
 
 type Project = {
   id: string;
@@ -26,11 +30,13 @@ type Project = {
   images: string[];
   category: string;
   status: string;
+  availablePlots?: (string | PlotObject)[];
 };
 
 export default function ProjectsManager() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -41,7 +47,25 @@ export default function ProjectsManager() {
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [category, setCategory] = useState("Land - Phase 1");
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [customCategory, setCustomCategory] = useState("");
   const [status, setStatus] = useState("Ongoing");
+  const [availablePlots, setAvailablePlots] = useState<PlotObject[]>([
+    { name: "3 Katha", isSoldOut: false },
+    { name: "5 Katha", isSoldOut: false },
+    { name: "10 Katha", isSoldOut: false },
+  ]);
+  const [newPlotInput, setNewPlotInput] = useState("");
+  const [selectedFilterCategory, setSelectedFilterCategory] = useState("All");
+
+  // Compute dynamic category options combining defaults and existing project categories
+  const defaultCategories = ["Land - Phase 1", "Land - Phase 2", "Apartment"];
+  const dynamicCategories = Array.from(
+    new Set([
+      ...defaultCategories,
+      ...projects.map((p) => p.category).filter(Boolean),
+    ])
+  );
 
   const fetchProjects = async () => {
     const res = await getProjectsAction();
@@ -93,27 +117,56 @@ export default function ProjectsManager() {
     setImages(images.filter((_, idx) => idx !== indexToRemove));
   };
 
+  const handleEditProject = (project: Project) => {
+    setEditingProjectId(project.id);
+    setTitle(project.title);
+    setDescription(project.description || "");
+    setImages(project.images || []);
+    setCategory(project.category || "Land - Phase 1");
+    setStatus(project.status || "Ongoing");
+    setAvailablePlots(parsePlotsFromProject(project));
+    setIsCustomCategory(false);
+    setCustomCategory("");
+    setIsModalOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return alert("Please enter a project title.");
     if (!description.trim() || description === "<br>") return alert("Please add some project description details.");
 
+    const finalCategory = isCustomCategory ? customCategory.trim() : category;
+    if (!finalCategory) return alert("Please select or enter a project category.");
+
     setIsLoading(true);
 
-    const res = await createProjectAction({
-      title,
-      description,
-      images,
-      category,
-      status,
-    });
+    let res;
+    if (editingProjectId) {
+      res = await updateProjectAction(editingProjectId, {
+        title,
+        description,
+        images,
+        category: finalCategory,
+        status,
+        availablePlots,
+      });
+    } else {
+      res = await createProjectAction({
+        title,
+        description,
+        images,
+        category: finalCategory,
+        status,
+        availablePlots,
+      });
+    }
 
     if (res.success) {
       setIsModalOpen(false);
       resetForm();
       fetchProjects();
     } else {
-      alert(res.error || "Failed to create project.");
+      alert(res.error || "Failed to save project.");
     }
     setIsLoading(false);
   };
@@ -140,11 +193,20 @@ export default function ProjectsManager() {
   };
 
   const resetForm = () => {
+    setEditingProjectId(null);
     setTitle("");
     setDescription("");
     setImages([]);
-    setCategory("Land - Phase 1");
+    setCategory(dynamicCategories[0] || "Land - Phase 1");
+    setIsCustomCategory(false);
+    setCustomCategory("");
     setStatus("Ongoing");
+    setAvailablePlots([
+      { name: "3 Katha", isSoldOut: false },
+      { name: "5 Katha", isSoldOut: false },
+      { name: "10 Katha", isSoldOut: false },
+    ]);
+    setNewPlotInput("");
   };
 
   // Helper to safely strip HTML tags for summary snippet
@@ -155,10 +217,13 @@ export default function ProjectsManager() {
 
   const filteredProjects = projects.filter((p) => {
     const textSnippet = getPlainText(p.description);
-    return (
+    const matchesSearch =
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      textSnippet.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+      textSnippet.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedFilterCategory === "All" || p.category === selectedFilterCategory;
+
+    return matchesSearch && matchesCategory;
   });
 
   return (
@@ -198,7 +263,7 @@ export default function ProjectsManager() {
       {/* Main Table Card */}
       <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
         {/* Search controls */}
-        <div className="p-5 border-b border-gray-100 flex items-center bg-white">
+        <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white">
           <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4.5 w-4.5" />
             <input 
@@ -208,6 +273,21 @@ export default function ProjectsManager() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Filter Category:</span>
+            <select
+              value={selectedFilterCategory}
+              onChange={(e) => setSelectedFilterCategory(e.target.value)}
+              className="py-2 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option value="All">All Categories ({projects.length})</option>
+              {dynamicCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -273,20 +353,29 @@ export default function ProjectsManager() {
                     </p>
                   </td>
                   <td className="p-4 align-middle text-right">
-                    <button 
-                      onClick={() => handleDelete(project.id)} 
-                      className="p-1.5 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg transition"
-                      title="Delete Project"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
+                    <div className="flex items-center justify-end gap-1">
+                      <button 
+                        onClick={() => handleEditProject(project)} 
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition"
+                        title="Edit Project"
+                      >
+                        <Edit3 className="h-5 w-5" />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(project.id)} 
+                        className="p-1.5 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg transition"
+                        title="Delete Project"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
 
               {filteredProjects.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="p-12 text-center text-gray-400 text-sm font-semibold">
+                  <td colSpan={6} className="p-12 text-center text-gray-400 text-sm font-semibold">
                     No projects found. Add a new project layout or seed default projects to get started.
                   </td>
                 </tr>
@@ -333,16 +422,65 @@ export default function ProjectsManager() {
 
               {/* Category */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Project Category</label>
-                <select 
-                  value={category} 
-                  onChange={e => setCategory(e.target.value)} 
-                  className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition py-2.5 px-3.5 text-sm font-medium text-gray-700"
-                >
-                  <option value="Land - Phase 1">Land - Phase 1</option>
-                  <option value="Land - Phase 2">Land - Phase 2</option>
-                  <option value="Apartment">Apartment</option>
-                </select>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Project Category</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCustomCategory(!isCustomCategory);
+                      if (!isCustomCategory) {
+                        setCustomCategory("");
+                      }
+                    }}
+                    className="text-xs text-green-700 hover:text-green-800 font-semibold underline transition"
+                  >
+                    {isCustomCategory ? "← Choose existing category" : "+ Add new category"}
+                  </button>
+                </div>
+
+                {isCustomCategory ? (
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      required 
+                      value={customCategory} 
+                      onChange={e => setCustomCategory(e.target.value)} 
+                      className="flex-1 rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition py-2.5 px-3.5 text-sm font-medium text-gray-700" 
+                      placeholder="Enter custom category (e.g. Land - Phase 3)"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsCustomCategory(false)}
+                      className="px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg border border-gray-200 transition shrink-0"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <select 
+                    value={category} 
+                    onChange={e => {
+                      if (e.target.value === "__NEW__") {
+                        setIsCustomCategory(true);
+                        setCustomCategory("");
+                      } else {
+                        setCategory(e.target.value);
+                      }
+                    }} 
+                    className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition py-2.5 px-3.5 text-sm font-medium text-gray-700"
+                  >
+                    {dynamicCategories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                    <option value="__NEW__">+ Add New Category...</option>
+                  </select>
+                )}
+                {isCustomCategory && (
+                  <p className="text-xxs text-gray-400">
+                    Entering a new category name will dynamically add it to the project category options once saved.
+                  </p>
+                )}
               </div>
 
               {/* Status */}
@@ -357,6 +495,110 @@ export default function ProjectsManager() {
                   <option value="Upcoming">Upcoming</option>
                   <option value="Delivered">Delivered</option>
                 </select>
+              </div>
+
+              {/* Available Plots / Plot Options */}
+              <div className="flex flex-col gap-2 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Compass className="h-4 w-4 text-green-700" /> Available Plots / Plot Options (কাঠা বা প্লট নম্বর)
+                  </label>
+                  <span className="text-xxs text-gray-400">Add plot sizes or plot numbers for buyers to select</span>
+                </div>
+
+                {/* Quick Add Presets */}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <span className="text-xxs font-bold text-gray-500">Quick Add:</span>
+                  {["3 Katha", "5 Katha", "10 Katha", "20 Katha"].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => {
+                        if (!availablePlots.some((p) => p.name.toLowerCase() === preset.toLowerCase())) {
+                          setAvailablePlots([...availablePlots, { name: preset, isSoldOut: false }]);
+                        }
+                      }}
+                      className="px-2.5 py-1 text-xs font-semibold bg-white border border-gray-200 hover:border-green-500 hover:text-green-700 rounded-lg transition"
+                    >
+                      + {preset}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom Plot Input */}
+                <div className="flex gap-2 pt-1">
+                  <input
+                    type="text"
+                    value={newPlotInput}
+                    onChange={(e) => setNewPlotInput(e.target.value)}
+                    placeholder="e.g. Plot-101 (3 Katha), Shop-A, Flat-301..."
+                    className="flex-1 rounded-lg border border-gray-200 bg-white py-2 px-3 text-xs font-medium focus:ring-2 focus:ring-green-500 outline-none"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        if (newPlotInput.trim() && !availablePlots.some((p) => p.name.toLowerCase() === newPlotInput.trim().toLowerCase())) {
+                          setAvailablePlots([...availablePlots, { name: newPlotInput.trim(), isSoldOut: false }]);
+                          setNewPlotInput("");
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newPlotInput.trim() && !availablePlots.some((p) => p.name.toLowerCase() === newPlotInput.trim().toLowerCase())) {
+                        setAvailablePlots([...availablePlots, { name: newPlotInput.trim(), isSoldOut: false }]);
+                        setNewPlotInput("");
+                      }
+                    }}
+                    className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white font-semibold text-xs rounded-lg transition shrink-0"
+                  >
+                    Add Option
+                  </button>
+                </div>
+
+                {/* Active Plots List with Sold Out Toggle */}
+                <div className="flex flex-wrap gap-2.5 pt-2">
+                  {availablePlots.map((plotItem, idx) => (
+                    <div
+                      key={idx}
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border transition text-xs font-bold ${
+                        plotItem.isSoldOut
+                          ? "bg-red-50 border-red-200 text-red-800"
+                          : "bg-green-50 border-green-200 text-green-800"
+                      }`}
+                    >
+                      <span>{plotItem.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = [...availablePlots];
+                          updated[idx] = { ...updated[idx], isSoldOut: !updated[idx].isSoldOut };
+                          setAvailablePlots(updated);
+                        }}
+                        className={`px-2 py-0.5 rounded-md text-[10px] uppercase tracking-wider font-extrabold transition ${
+                          plotItem.isSoldOut
+                            ? "bg-red-600 text-white hover:bg-red-700"
+                            : "bg-green-700 text-white hover:bg-green-800"
+                        }`}
+                        title="Click to toggle Available vs Sold Out status"
+                      >
+                        {plotItem.isSoldOut ? "SOLD OUT 🚫" : "AVAILABLE ✓"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAvailablePlots(availablePlots.filter((_, i) => i !== idx))}
+                        className="text-gray-400 hover:text-red-600 font-bold ml-0.5 text-sm"
+                        title="Remove Plot"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  {availablePlots.length === 0 && (
+                    <span className="text-xs text-gray-400 italic">No plot options added yet.</span>
+                  )}
+                </div>
               </div>
 
               {/* Rich Description */}
