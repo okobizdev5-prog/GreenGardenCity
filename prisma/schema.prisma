@@ -81,7 +81,7 @@ model Banner {
   badgeText        String   @default("100% GATED & SECURE ECO-CITY")
   title            String   @default("Discover the Future of")
   highlightTitle   String   @default("Urban Living")
-  subtitle         String   @default("Experience the perfect harmony of modern architecture, advanced smart facilities, and pristine natural serenity. Your dream plot awaits at Greenleaf Holdings Ltd..")
+  subtitle         String   @default("Experience the perfect harmony of modern architecture, advanced smart facilities, and pristine natural serenity. Your dream plot awaits at Green Garden City.")
   bgImage          String?  @default("/hero_background.png")
   highlights       String[] @default(["Immediate Plot Registration", "Electricity & Gas Connections Ready", "15 Mins Drive from Hazrat Shahjalal Airport", "Flexible Installment Plans Available"])
   primaryBtnText   String   @default("Book a Site Visit")
@@ -92,3 +92,31 @@ model Banner {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
+
+model About {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  badge      String   @default("About Our Vision")
+  title      String   @default("A Glimpse into Sustainable Luxury")
+  desc1      String   @default("Green Garden City is carefully crafted to offer a highly secure, pollution-free, and natural living environment. Our community is designed with premium infrastructure and modern layouts, catering to families seeking luxury coupled with green surroundings.")
+  desc2      String   @default("Every detail, from the layout of internal roads to the designated park spaces, has been designed by urban planners to guarantee a high quality of life and great long-term return on investment.")
+  stat1Num   String   @default("100+")
+  stat1Label String   @default("Happy Plot Buyers")
+  stat2Num   String   @default("40%")
+  stat2Label String   @default("Dedicated Greenery & Lakes")
+  mediaUrl   String   @default("/vision_image.png")
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Review {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  role      String   @default("Client")
+  rating    Int      @default(5)
+  comment   String
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+

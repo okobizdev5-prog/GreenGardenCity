@@ -3,8 +3,8 @@ import { Navbar } from "@/components/Navbar";
 import { Trees, Eye, Flag } from "lucide-react";
 
 export const metadata = {
-  title: "About Us - Greenleaf Holdings Ltd.",
-  description: "Learn about the vision, mission, and the team driving Greenleaf Holdings Ltd.'s sustainable urban sanctuary.",
+  title: "About Us - Green Garden City",
+  description: "Learn about the vision, mission, and the team driving Green Garden City's sustainable urban sanctuary.",
 };
 
 export const revalidate = 0;
@@ -62,7 +62,7 @@ export default async function AboutPage() {
             Cultivating the Future of Living
           </h1>
           <p className="text-lg md:text-xl text-gray-200 font-light max-w-2xl mx-auto leading-relaxed">
-            Discover the philosophy behind Greenleaf Holdings Ltd.. We aren't just building homes; we are designing an integrated ecosystem where community, nature, and modern convenience thrive in perfect harmony.
+            Discover the philosophy behind Green Garden City. We aren't just building homes; we are designing an integrated ecosystem where community, nature, and modern convenience thrive in perfect harmony.
           </p>
         </div>
       </section>
@@ -129,7 +129,7 @@ export default async function AboutPage() {
           <div className="text-center max-w-2xl mx-auto space-y-4">
             <h2 className="text-3xl font-extrabold text-green-900 tracking-tight">Meet the Minds Behind the Green</h2>
             <p className="text-gray-500 font-medium text-sm leading-relaxed">
-              Our diverse team of urban planners, environmental architects, and community builders are dedicated to realizing the vision of Greenleaf Holdings Ltd..
+              Our diverse team of urban planners, environmental architects, and community builders are dedicated to realizing the vision of Green Garden City.
             </p>
           </div>
 
@@ -170,14 +170,14 @@ export default async function AboutPage() {
       {/* Footer */}
       <footer className="bg-green-950 text-gray-300 pt-16 pb-8 border-t border-green-900">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl grid grid-cols-1 md:grid-cols-3 items-center gap-8 mb-12">
-          <div className="text-xl font-bold text-white tracking-wide">Greenleaf Holdings Ltd.</div>
+          <div className="text-xl font-bold text-white tracking-wide">Green Garden City</div>
           <div className="flex flex-wrap justify-center gap-6 text-sm">
             <a href="#" className="hover:text-amber-400 transition">Privacy Policy</a>
             <a href="#" className="hover:text-amber-400 transition">Terms of Service</a>
             <a href="/contact" className="hover:text-amber-400 transition">Contact Us</a>
           </div>
           <div className="text-sm text-center md:text-right text-green-100/50">
-            &copy; {new Date().getFullYear()} Greenleaf Holdings Ltd.. All rights reserved.
+            &copy; {new Date().getFullYear()} Green Garden City. All rights reserved.
           </div>
         </div>
       </footer>

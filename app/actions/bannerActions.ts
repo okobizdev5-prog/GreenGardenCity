@@ -25,7 +25,7 @@ const defaultBanners: BannerData[] = [
     badgeText: "100% GATED & SECURE ECO-CITY",
     title: "Discover the Future of",
     highlightTitle: "Urban Living",
-    subtitle: "Experience the perfect harmony of modern architecture, advanced smart facilities, and pristine natural serenity. Your dream plot awaits at Greenleaf Holdings Ltd..",
+    subtitle: "Experience the perfect harmony of modern architecture, advanced smart facilities, and pristine natural serenity. Your dream plot awaits at Green Garden City.",
     bgImage: "/hero_background.png",
     highlights: [
       "Immediate Plot Registration",
@@ -43,7 +43,7 @@ const defaultBanners: BannerData[] = [
     badgeText: "PREMIUM WATERFRONT VILLAS",
     title: "Exclusive Lakeside",
     highlightTitle: "Private Residences",
-    subtitle: "Architectural perfection blended with private infinity pools, panoramic lake views, and lush tropical gardens in Greenleaf Holdings Ltd..",
+    subtitle: "Architectural perfection blended with private infinity pools, panoramic lake views, and lush tropical gardens in Green Garden City.",
     bgImage: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=1600",
     highlights: [
       "Private Lake Access & Deck",

@@ -50,7 +50,7 @@ export function BlogClient({ initialPosts }: BlogClientProps) {
               Insights & Life
             </h1>
             <p className="text-gray-600 text-lg font-light leading-relaxed">
-              Explore stories on sustainable urban living, modern architecture, and community life in Greenleaf Holdings Ltd..
+              Explore stories on sustainable urban living, modern architecture, and community life in Green Garden City.
             </p>
           </div>
 
@@ -74,8 +74,8 @@ export function BlogClient({ initialPosts }: BlogClientProps) {
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
                   className={`whitespace-nowrap px-4 py-2 text-xs font-semibold rounded-full border transition ${selectedCategory === cat
-                      ? "bg-green-700 text-white border-green-600 shadow-sm"
-                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    ? "bg-green-700 text-white border-green-600 shadow-sm"
+                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                     }`}
                 >
                   {cat}
@@ -223,14 +223,14 @@ export function BlogClient({ initialPosts }: BlogClientProps) {
       {/* Footer */}
       <footer className="bg-green-950 text-gray-300 pt-16 pb-8 border-t border-green-900 mt-auto">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl grid grid-cols-1 md:grid-cols-3 items-center gap-8 mb-12">
-          <div className="text-xl font-bold text-white tracking-wide">Greenleaf Holdings Ltd.</div>
+          <div className="text-xl font-bold text-white tracking-wide">Green Garden City</div>
           <div className="flex flex-wrap justify-center gap-6 text-sm">
             <a href="#" className="hover:text-amber-400 transition">Privacy Policy</a>
             <a href="#" className="hover:text-amber-400 transition">Terms of Service</a>
             <a href="/contact" className="hover:text-amber-400 transition">Contact Us</a>
           </div>
           <div className="text-sm text-center md:text-right text-green-100/50">
-            &copy; {new Date().getFullYear()} Greenleaf Holdings Ltd.. All rights reserved.
+            &copy; {new Date().getFullYear()} Green Garden City. All rights reserved.
           </div>
         </div>
       </footer>

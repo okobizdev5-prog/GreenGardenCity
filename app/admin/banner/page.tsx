@@ -31,11 +31,17 @@ import {
   BannerData
 } from "@/app/actions/bannerActions";
 
+const isVideo = (url?: string) => {
+  if (!url) return false;
+  const videoExtensions = [".mp4", ".webm", ".ogg", ".mov", ".m4v"];
+  return videoExtensions.some(ext => url.toLowerCase().endsWith(ext)) || url.includes("/uploads/video") || url.includes("video");
+};
+
 const emptyBannerState: BannerData = {
   badgeText: "100% GATED & SECURE ECO-CITY",
   title: "Discover the Future of",
   highlightTitle: "Urban Living",
-  subtitle: "Experience the perfect harmony of modern architecture, advanced smart facilities, and pristine natural serenity. Your dream plot awaits at Greenleaf Holdings Ltd..",
+  subtitle: "Experience the perfect harmony of modern architecture, advanced smart facilities, and pristine natural serenity. Your dream plot awaits at Green Garden City.",
   bgImage: "/hero_background.png",
   highlights: [
     "Immediate Plot Registration",
@@ -268,50 +274,57 @@ export default function BannerManager() {
               key={banner.id || index}
               className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col group hover:border-green-300 hover:shadow-md transition duration-200"
             >
-              {/* Banner Cover Image */}
-              <div
-                className="h-44 w-full bg-gray-900 bg-cover bg-center relative p-4 flex flex-col justify-between"
-                style={{ backgroundImage: `url('${banner.bgImage || "/hero_background.png"}')` }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20 z-0"></div>
+              {/* Banner Cover Image/Video */}
+              <div className="h-44 w-full bg-gray-900 relative p-4 flex flex-col justify-between overflow-hidden">
+                {banner.bgImage ? (
+                  isVideo(banner.bgImage) ? (
+                    <video
+                      src={banner.bgImage}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="absolute inset-0 w-full h-full object-cover z-0"
+                    />
+                  ) : (
+                    <img
+                      src={banner.bgImage}
+                      alt="Banner"
+                      className="absolute inset-0 w-full h-full object-cover z-0"
+                    />
+                  )
+                ) : (
+                  <img
+                    src="/hero_background.png"
+                    alt="Banner Default"
+                    className="absolute inset-0 w-full h-full object-cover z-0"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20 z-10"></div>
 
-                <div className="relative z-10 flex justify-between items-start">
+                <div className="relative z-20 flex justify-between items-start">
                   <span className="bg-green-800/80 backdrop-blur-md text-green-200 text-xxs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-green-600/50">
                     Slide #{index + 1}
                   </span>
 
-                  <span className="bg-white/90 text-gray-800 text-xxs font-bold px-2 py-1 rounded-md shadow-xs">
-                    {banner.badgeText || "ECO-CITY"}
+                  <span className={`text-xxs font-bold px-2 py-1 rounded-md shadow-xs ${
+                    banner.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                  }`}>
+                    {banner.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
 
-                <div className="relative z-10 space-y-1">
+                <div className="relative z-20 space-y-1">
                   <h4 className="text-white font-extrabold text-lg line-clamp-1">
-                    {banner.title} {banner.highlightTitle}
+                    {banner.title}
                   </h4>
-                  <p className="text-gray-300 text-xs line-clamp-1 font-light">
-                    {banner.subtitle}
-                  </p>
                 </div>
               </div>
 
               {/* Card Body & Details */}
               <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Key Highlights</span>
-                  <ul className="space-y-1 text-xs text-gray-600">
-                    {(banner.highlights || []).slice(0, 3).map((item, idx) => (
-                      <li key={idx} className="flex items-center gap-1.5 truncate">
-                        <span className="text-green-600 font-bold text-xxs">✓</span>
-                        <span className="truncate">{item}</span>
-                      </li>
-                    ))}
-                    {(banner.highlights || []).length > 3 && (
-                      <li className="text-xxs text-gray-400 font-semibold pl-3">
-                        +{(banner.highlights || []).length - 3} more highlights
-                      </li>
-                    )}
-                  </ul>
+                <div className="text-xs text-gray-500 font-medium">
+                  Media Path: <span className="text-gray-700 select-all break-all">{banner.bgImage || "None"}</span>
                 </div>
 
                 {/* Card Actions */}
@@ -349,9 +362,10 @@ export default function BannerManager() {
               <Plus className="h-6 w-6" />
             </div>
             <span className="font-bold text-sm text-gray-700 group-hover:text-green-800">Add New Hero Banner Slide</span>
-            <span className="text-xs text-gray-400 max-w-xs text-center">Create another dynamic slide with custom title, images, and highlights</span>
+            <span className="text-xs text-gray-400 max-w-xs text-center">Create another dynamic slide with custom background image or video</span>
           </button>
         </div>
+
       </div>
 
       {/* Add / Edit Banner Modal */}
@@ -381,97 +395,75 @@ export default function BannerManager() {
               {/* Live Mini Preview Inside Modal */}
               <div className="space-y-1.5">
                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Slide Preview</span>
-                <div
-                  className="relative min-h-[220px] rounded-xl overflow-hidden border border-gray-300 bg-cover bg-center p-5 text-white flex items-center shadow-md"
-                  style={{ backgroundImage: `url('${formData.bgImage || "/hero_background.png"}')` }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-tr from-green-950/85 via-green-900/65 to-black/60 z-0"></div>
-
-                  <div className="relative z-10 w-full space-y-2">
-                    <span className="inline-block px-2.5 py-0.5 rounded-full bg-green-800/80 border border-green-600/50 text-[10px] font-bold text-green-200 uppercase">
-                      {formData.badgeText || "100% GATED & SECURE ECO-CITY"}
-                    </span>
-                    <h4 className="text-xl font-extrabold tracking-tight">
-                      {formData.title}{" "}
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-300 via-emerald-400 to-amber-300">
-                        {formData.highlightTitle}
-                      </span>
-                    </h4>
-                    <p className="text-xs text-gray-200 line-clamp-2 max-w-lg font-light">
-                      {formData.subtitle}
-                    </p>
-                  </div>
+                <div className="relative min-h-[220px] rounded-xl overflow-hidden border border-gray-300 bg-gray-950 flex items-center justify-center shadow-md">
+                  {formData.bgImage ? (
+                    isVideo(formData.bgImage) ? (
+                      <video
+                        src={formData.bgImage}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="absolute inset-0 w-full h-full object-cover z-0"
+                      />
+                    ) : (
+                      <img
+                        src={formData.bgImage}
+                        alt="Preview"
+                        className="absolute inset-0 w-full h-full object-cover z-0"
+                      />
+                    )
+                  ) : (
+                    <span className="text-gray-400 text-xs relative z-10">No media uploaded</span>
+                  )}
+                  <div className="absolute inset-0 bg-black/15 z-10"></div>
                 </div>
               </div>
 
               {/* Grid Form Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Badge Tagline</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.badgeText}
-                    onChange={e => setFormData({ ...formData, badgeText: e.target.value })}
-                    className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition py-2 px-3 text-sm font-medium text-gray-800"
-                    placeholder="e.g. 100% GATED & SECURE ECO-CITY"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Main Title Prefix</label>
+                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Slide Name / Reference</label>
                   <input
                     type="text"
                     required
                     value={formData.title}
                     onChange={e => setFormData({ ...formData, title: e.target.value })}
                     className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition py-2 px-3 text-sm font-medium text-gray-800"
-                    placeholder="e.g. Discover the Future of"
+                    placeholder="e.g. Waterfront Villa, Eco-City Banner, etc."
                   />
+                </div>
+
+                <div className="flex flex-col gap-1.5 justify-center pl-4 pt-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isActive ?? true}
+                      onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
+                      className="rounded text-green-700 focus:ring-green-500 h-4.5 w-4.5"
+                    />
+                    <span className="text-sm font-semibold text-gray-700">Active Slide (Visible in Carousel)</span>
+                  </label>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Highlighted Title (Gradient)</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.highlightTitle}
-                  onChange={e => setFormData({ ...formData, highlightTitle: e.target.value })}
-                  className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition py-2 px-3 text-sm font-medium text-gray-800"
-                  placeholder="e.g. Urban Living"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Subtitle / Description</label>
-                <textarea
-                  rows={2}
-                  required
-                  value={formData.subtitle}
-                  onChange={e => setFormData({ ...formData, subtitle: e.target.value })}
-                  className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition py-2 px-3 text-sm font-medium text-gray-800"
-                  placeholder="Enter slide paragraph content..."
-                />
-              </div>
-
-              {/* Background Image Upload */}
+              {/* Background Media (Image or Video) Upload */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider block">Background Image</label>
+                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider block">Background Media (Image or Video)</label>
                 <div className="flex flex-col sm:flex-row gap-3 items-stretch">
                   <input
                     type="text"
                     value={formData.bgImage}
                     onChange={e => setFormData({ ...formData, bgImage: e.target.value })}
                     className="flex-1 rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition py-2 px-3 text-sm font-medium text-gray-800"
-                    placeholder="/hero_background.png or https://..."
+                    placeholder="/hero_background.png or /uploads/... or https://..."
                   />
                   <label className="relative cursor-pointer bg-green-50 hover:bg-green-100 text-green-800 font-semibold px-4 py-2 rounded-lg border border-green-200 flex items-center justify-center gap-2 text-xs transition shrink-0">
                     <ImageIcon className="h-4 w-4 text-green-700" />
-                    <span>Upload Image</span>
+                    <span>Upload Media</span>
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/*,video/*"
                       onChange={handleImageUpload}
                       className="absolute inset-0 opacity-0 cursor-pointer"
                     />
@@ -479,90 +471,9 @@ export default function BannerManager() {
                 </div>
                 {isUploading && (
                   <p className="text-xs text-green-700 font-medium flex items-center gap-1.5">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Uploading image...
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Uploading file...
                   </p>
                 )}
-              </div>
-
-              {/* Dynamic Key Highlights */}
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider block">Key Highlights Bullet Points</label>
-
-                {formData.highlights.map((highlight, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-green-100 text-green-700 font-bold text-xs">✓</span>
-                    <input
-                      type="text"
-                      value={highlight}
-                      onChange={e => handleUpdateHighlight(index, e.target.value)}
-                      className="flex-1 rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition py-1.5 px-3 text-xs font-medium text-gray-800"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveHighlight(index)}
-                      className="p-1.5 text-red-500 hover:bg-red-50 rounded transition"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                ))}
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={newHighlight}
-                    onChange={e => setNewHighlight(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddHighlight(); } }}
-                    className="flex-1 rounded-lg border-gray-200 border bg-white focus:ring-2 focus:ring-green-500 outline-none transition py-1.5 px-3 text-xs font-medium text-gray-800"
-                    placeholder="Add highlight item..."
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddHighlight}
-                    className="bg-green-700 hover:bg-green-800 text-white font-semibold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 transition"
-                  >
-                    <Plus className="h-3.5 w-3.5" /> Add
-                  </button>
-                </div>
-              </div>
-
-              {/* Action Buttons Links */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <div className="space-y-2 bg-gray-50 p-3 rounded-xl border border-gray-200">
-                  <span className="text-xs font-bold text-green-800 block uppercase">Primary Button</span>
-                  <input
-                    type="text"
-                    value={formData.primaryBtnText}
-                    onChange={e => setFormData({ ...formData, primaryBtnText: e.target.value })}
-                    className="w-full rounded-lg border-gray-200 border bg-white py-1.5 px-3 text-xs font-medium"
-                    placeholder="Button Text"
-                  />
-                  <input
-                    type="text"
-                    value={formData.primaryBtnLink}
-                    onChange={e => setFormData({ ...formData, primaryBtnLink: e.target.value })}
-                    className="w-full rounded-lg border-gray-200 border bg-white py-1.5 px-3 text-xs font-medium"
-                    placeholder="#booking link"
-                  />
-                </div>
-
-                <div className="space-y-2 bg-gray-50 p-3 rounded-xl border border-gray-200">
-                  <span className="text-xs font-bold text-gray-700 block uppercase">Secondary Button</span>
-                  <input
-                    type="text"
-                    value={formData.secondaryBtnText}
-                    onChange={e => setFormData({ ...formData, secondaryBtnText: e.target.value })}
-                    className="w-full rounded-lg border-gray-200 border bg-white py-1.5 px-3 text-xs font-medium"
-                    placeholder="Button Text"
-                  />
-                  <input
-                    type="text"
-                    value={formData.secondaryBtnLink}
-                    onChange={e => setFormData({ ...formData, secondaryBtnLink: e.target.value })}
-                    className="w-full rounded-lg border-gray-200 border bg-white py-1.5 px-3 text-xs font-medium"
-                    placeholder="#plots link"
-                  />
-                </div>
               </div>
 
               {/* Modal Actions */}

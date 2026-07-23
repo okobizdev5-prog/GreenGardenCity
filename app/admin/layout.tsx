@@ -2,8 +2,8 @@ import { Sidebar } from "@/components/admin/Sidebar";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard - Greenleaf Holdings Ltd.",
-  description: "Admin panel for Greenleaf Holdings Ltd. real estate platform.",
+  title: "Admin Dashboard - Green Garden City",
+  description: "Admin panel for Green Garden City real estate platform.",
 };
 
 export default function AdminLayout({

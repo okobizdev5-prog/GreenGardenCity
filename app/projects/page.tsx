@@ -3,8 +3,8 @@ import { ProjectsClient } from "@/components/ProjectsClient";
 import { parsePlotsFromProject } from "@/lib/projectUtils";
 
 export const metadata = {
-  title: "Development Projects - Greenleaf Holdings Ltd.",
-  description: "Explore our premium residential communities, commercial hubs, and eco-friendly development projects in Greenleaf Holdings Ltd..",
+  title: "Development Projects - Green Garden City",
+  description: "Explore our premium residential communities, commercial hubs, and eco-friendly development projects in Green Garden City.",
 };
 
 export const revalidate = 0;

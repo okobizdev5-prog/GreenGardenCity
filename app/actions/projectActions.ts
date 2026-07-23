@@ -101,7 +101,7 @@ export async function updateProjectAction(
     }
 
     const plotsToSave = data.availablePlots;
-    const formattedDescription = data.description !== undefined 
+    const formattedDescription = data.description !== undefined
       ? formatDescriptionWithPlots(data.description, plotsToSave)
       : undefined;
 
@@ -182,7 +182,7 @@ export async function seedDefaultProjectsAction() {
     const premiumProjects = [
       {
         title: "Green Garden Premium Villas",
-        description: `<h1>Green Garden Premium Villas</h1><p>Experience ultra-luxury living in our flagship villa project. Surrounded by natural lakes and private gardens, these villas offer the perfect sanctuary for your family.</p><h3>Key Features</h3><ul><li>Private Infinity Pools &amp; Sun Decks</li><li>Smart Home Automation &amp; Centralized AC</li><li>Renewable Solar Power Grid Connection</li><li>24/7 Gated Security &amp; CCTV Surveillance</li></ul><p>Located in the heart of Greenleaf Holdings Ltd., each villa layout is customizable to fit your architectural preferences.</p>`,
+        description: `<h1>Green Garden Premium Villas</h1><p>Experience ultra-luxury living in our flagship villa project. Surrounded by natural lakes and private gardens, these villas offer the perfect sanctuary for your family.</p><h3>Key Features</h3><ul><li>Private Infinity Pools &amp; Sun Decks</li><li>Smart Home Automation &amp; Centralized AC</li><li>Renewable Solar Power Grid Connection</li><li>24/7 Gated Security &amp; CCTV Surveillance</li></ul><p>Located in the heart of Green Garden City, each villa layout is customizable to fit your architectural preferences.</p>`,
         category: "Land - Phase 1",
         status: "Ongoing",
         availablePlots: ["3 Katha", "5 Katha", "10 Katha", "Plot-101 (3 Katha)", "Plot-102 (5 Katha)"],

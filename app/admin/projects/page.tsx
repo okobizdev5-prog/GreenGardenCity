@@ -46,26 +46,14 @@ export default function ProjectsManager() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<string[]>([]);
-  const [category, setCategory] = useState("Land - Phase 1");
-  const [isCustomCategory, setIsCustomCategory] = useState(false);
-  const [customCategory, setCustomCategory] = useState("");
-  const [status, setStatus] = useState("Ongoing");
+  const [category] = useState("General");
+  const [status] = useState("Ongoing");
   const [availablePlots, setAvailablePlots] = useState<PlotObject[]>([
     { name: "3 Katha", isSoldOut: false },
     { name: "5 Katha", isSoldOut: false },
     { name: "10 Katha", isSoldOut: false },
   ]);
   const [newPlotInput, setNewPlotInput] = useState("");
-  const [selectedFilterCategory, setSelectedFilterCategory] = useState("All");
-
-  // Compute dynamic category options combining defaults and existing project categories
-  const defaultCategories = ["Land - Phase 1", "Land - Phase 2", "Apartment"];
-  const dynamicCategories = Array.from(
-    new Set([
-      ...defaultCategories,
-      ...projects.map((p) => p.category).filter(Boolean),
-    ])
-  );
 
   const fetchProjects = async () => {
     const res = await getProjectsAction();
@@ -122,11 +110,7 @@ export default function ProjectsManager() {
     setTitle(project.title);
     setDescription(project.description || "");
     setImages(project.images || []);
-    setCategory(project.category || "Land - Phase 1");
-    setStatus(project.status || "Ongoing");
     setAvailablePlots(parsePlotsFromProject(project));
-    setIsCustomCategory(false);
-    setCustomCategory("");
     setIsModalOpen(true);
   };
 
@@ -134,9 +118,6 @@ export default function ProjectsManager() {
     e.preventDefault();
     if (!title.trim()) return alert("Please enter a project title.");
     if (!description.trim() || description === "<br>") return alert("Please add some project description details.");
-
-    const finalCategory = isCustomCategory ? customCategory.trim() : category;
-    if (!finalCategory) return alert("Please select or enter a project category.");
 
     setIsLoading(true);
 
@@ -146,7 +127,7 @@ export default function ProjectsManager() {
         title,
         description,
         images,
-        category: finalCategory,
+        category,
         status,
         availablePlots,
       });
@@ -155,7 +136,7 @@ export default function ProjectsManager() {
         title,
         description,
         images,
-        category: finalCategory,
+        category,
         status,
         availablePlots,
       });
@@ -197,10 +178,6 @@ export default function ProjectsManager() {
     setTitle("");
     setDescription("");
     setImages([]);
-    setCategory(dynamicCategories[0] || "Land - Phase 1");
-    setIsCustomCategory(false);
-    setCustomCategory("");
-    setStatus("Ongoing");
     setAvailablePlots([
       { name: "3 Katha", isSoldOut: false },
       { name: "5 Katha", isSoldOut: false },
@@ -220,10 +197,8 @@ export default function ProjectsManager() {
     const matchesSearch =
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       textSnippet.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      selectedFilterCategory === "All" || p.category === selectedFilterCategory;
 
-    return matchesSearch && matchesCategory;
+    return matchesSearch;
   });
 
   return (
@@ -274,21 +249,6 @@ export default function ProjectsManager() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Filter Category:</span>
-            <select
-              value={selectedFilterCategory}
-              onChange={(e) => setSelectedFilterCategory(e.target.value)}
-              className="py-2 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="All">All Categories ({projects.length})</option>
-              {dynamicCategories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
 
         {/* Projects Table */}
@@ -298,8 +258,6 @@ export default function ProjectsManager() {
               <tr className="bg-gray-50 border-b border-gray-100">
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Images</th>
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Project Title</th>
-                <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Description Summary</th>
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider text-right">Actions</th>
               </tr>
@@ -334,20 +292,6 @@ export default function ProjectsManager() {
                     <p className="font-bold text-gray-950 text-sm">{project.title}</p>
                   </td>
                   <td className="p-4 align-middle">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide bg-gray-100 text-gray-800 border border-gray-200">
-                      {project.category || "Phase 1"}
-                    </span>
-                  </td>
-                  <td className="p-4 align-middle">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide ${
-                      project.status === "Upcoming" ? "bg-amber-50 text-amber-700 border border-amber-200" :
-                      project.status === "Delivered" ? "bg-green-50 text-green-700 border border-green-200" :
-                      "bg-blue-50 text-blue-700 border border-blue-200"
-                    }`}>
-                      {project.status || "Ongoing"}
-                    </span>
-                  </td>
-                  <td className="p-4 align-middle">
                     <p className="text-xs text-gray-500 line-clamp-2 max-w-xl">
                       {getPlainText(project.description)}
                     </p>
@@ -375,7 +319,7 @@ export default function ProjectsManager() {
 
               {filteredProjects.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="p-12 text-center text-gray-400 text-sm font-semibold">
+                  <td colSpan={4} className="p-12 text-center text-gray-400 text-sm font-semibold">
                     No projects found. Add a new project layout or seed default projects to get started.
                   </td>
                 </tr>
@@ -420,82 +364,7 @@ export default function ProjectsManager() {
                 />
               </div>
 
-              {/* Category */}
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Project Category</label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsCustomCategory(!isCustomCategory);
-                      if (!isCustomCategory) {
-                        setCustomCategory("");
-                      }
-                    }}
-                    className="text-xs text-green-700 hover:text-green-800 font-semibold underline transition"
-                  >
-                    {isCustomCategory ? "← Choose existing category" : "+ Add new category"}
-                  </button>
-                </div>
 
-                {isCustomCategory ? (
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      required 
-                      value={customCategory} 
-                      onChange={e => setCustomCategory(e.target.value)} 
-                      className="flex-1 rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition py-2.5 px-3.5 text-sm font-medium text-gray-700" 
-                      placeholder="Enter custom category (e.g. Land - Phase 3)"
-                      autoFocus
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setIsCustomCategory(false)}
-                      className="px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg border border-gray-200 transition shrink-0"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <select 
-                    value={category} 
-                    onChange={e => {
-                      if (e.target.value === "__NEW__") {
-                        setIsCustomCategory(true);
-                        setCustomCategory("");
-                      } else {
-                        setCategory(e.target.value);
-                      }
-                    }} 
-                    className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition py-2.5 px-3.5 text-sm font-medium text-gray-700"
-                  >
-                    {dynamicCategories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                    <option value="__NEW__">+ Add New Category...</option>
-                  </select>
-                )}
-                {isCustomCategory && (
-                  <p className="text-xxs text-gray-400">
-                    Entering a new category name will dynamically add it to the project category options once saved.
-                  </p>
-                )}
-              </div>
-
-              {/* Status */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Project Status</label>
-                <select 
-                  value={status} 
-                  onChange={e => setStatus(e.target.value)} 
-                  className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition py-2.5 px-3.5 text-sm font-medium text-gray-700"
-                >
-                  <option value="Ongoing">Ongoing</option>
-                  <option value="Upcoming">Upcoming</option>
-                  <option value="Delivered">Delivered</option>
-                </select>
-              </div>
 
               {/* Available Plots / Plot Options */}
               <div className="flex flex-col gap-2 p-4 bg-gray-50 rounded-xl border border-gray-200">

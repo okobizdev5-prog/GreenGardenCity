@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { BookingModal } from "@/components/BookingModal";
-import { MapPin, Phone, Mail, ChevronRight, CalendarCheck, Home, Image as ImageIcon, Compass, CheckCircle2, Sparkles } from "lucide-react";
+import { ChevronRight, CalendarCheck, Home, Image as ImageIcon, Compass, CheckCircle2, Sparkles } from "lucide-react";
 
 import { PlotObject, normalizePlotObject } from "@/lib/projectUtils";
 
@@ -46,7 +46,7 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
             <Home className="h-3.5 w-3.5" /> Home
           </a>
           <ChevronRight className="h-3 w-3 text-gray-400" />
-          <a href="/projects" className="hover:text-green-700 transition">Projects</a>
+          <a href="/#plots" className="hover:text-green-700 transition">Projects</a>
           <ChevronRight className="h-3 w-3 text-gray-400" />
           <span className="text-green-800 font-bold truncate max-w-[200px]" title={project.title}>
             {project.title}
@@ -59,16 +59,8 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
           {/* Left Column: Project Description & Dynamic Available Plots Card */}
           <div className="lg:col-span-7 space-y-8">
             <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200/60 shadow-sm space-y-6">
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-green-950 tracking-tight leading-tight border-b border-gray-100 pb-4 flex flex-wrap items-center gap-3">
-                <span>{project.title}</span>
-                {project.status && (
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide border shadow-xxs ${project.status === "Upcoming" ? "bg-amber-50 text-amber-700 border-amber-200" :
-                      (project.status === "Delivered" || project.status === "Sold Out") ? "bg-red-50 text-red-700 border-red-200" :
-                        "bg-blue-50 text-blue-700 border-blue-200"
-                    }`}>
-                    {project.status === "Delivered" ? "Delivered / Sold Out" : project.status}
-                  </span>
-                )}
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-green-950 tracking-tight leading-tight border-b border-gray-100 pb-4">
+                {project.title}
               </h1>
 
               {/* Custom styling inside rich description rendering */}
@@ -82,7 +74,7 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
                 dangerouslySetInnerHTML={{ __html: project.description }}
               />
 
-              {/* Executive Available Plots Card */}
+              {/* Available Plots Card */}
               <div className="bg-gradient-to-b from-white to-gray-50/80 rounded-2xl p-6 border border-gray-200 shadow-sm space-y-5 mt-8">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-150 pb-4">
@@ -106,24 +98,23 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
                   </span>
                 </div>
 
-                {/* Plot Cards Grid - Ultra-Clean, Non-Cluttered */}
+                {/* Plot Cards Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
                   {plotsList.map((plotItem, idx) => {
                     const isSold = plotItem.isSoldOut || isProjectDeliveredOrSoldOut;
                     return (
                       <div
                         key={idx}
-                        className={`p-4 rounded-xl border transition-all duration-300 flex flex-col justify-between space-y-2 group ${
-                          isSold
+                        className={`p-4 rounded-xl border transition-all duration-300 flex flex-col justify-between space-y-2 group ${isSold
                             ? "bg-red-50/60 border-red-200 text-red-950"
                             : "bg-white border-gray-200 hover:border-green-600 hover:shadow-md"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Option #{idx + 1}</span>
                           <span className={`h-2.5 w-2.5 rounded-full ${isSold ? "bg-red-500" : "bg-emerald-500"}`}></span>
                         </div>
-                        
+
                         <div className="space-y-0.5">
                           <h4 className={`text-base sm:text-lg font-extrabold ${isSold ? "text-red-950 line-through opacity-80" : "text-green-950 group-hover:text-green-700"}`}>
                             {plotItem.name}
@@ -133,9 +124,8 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
                           </p>
                         </div>
 
-                        <div className={`pt-2 border-t text-xs font-bold flex items-center justify-between ${
-                          isSold ? "border-red-200 text-red-700" : "border-gray-100 text-green-700"
-                        }`}>
+                        <div className={`pt-2 border-t text-xs font-bold flex items-center justify-between ${isSold ? "border-red-200 text-red-700" : "border-gray-100 text-green-700"
+                          }`}>
                           <span>{isSold ? "SOLD OUT 🚫" : "Available"}</span>
                           {!isSold && <span className="group-hover:translate-x-0.5 transition">&rarr;</span>}
                         </div>
@@ -212,14 +202,14 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
       {/* Footer */}
       <footer className="bg-green-950 text-gray-300 pt-16 pb-8 border-t border-green-900 mt-20">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl grid grid-cols-1 md:grid-cols-3 items-center gap-8 mb-12">
-          <div className="text-xl font-bold text-white tracking-wide">Greenleaf Holdings Ltd.</div>
+          <div className="text-xl font-bold text-white tracking-wide">Green Garden City</div>
           <div className="flex flex-wrap justify-center gap-6 text-sm">
             <a href="#" className="hover:text-amber-400 transition">Privacy Policy</a>
             <a href="#" className="hover:text-amber-400 transition">Terms of Service</a>
             <a href="/contact" className="hover:text-amber-400 transition">Contact Us</a>
           </div>
           <div className="text-sm text-center md:text-right text-green-100/50">
-            &copy; {new Date().getFullYear()} Greenleaf Holdings Ltd.. All rights reserved.
+            &copy; {new Date().getFullYear()} Green Garden City. All rights reserved.
           </div>
         </div>
       </footer>

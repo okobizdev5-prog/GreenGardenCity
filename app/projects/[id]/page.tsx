@@ -17,13 +17,13 @@ export async function generateMetadata({ params }: PageProps) {
 
   if (!project) {
     return {
-      title: "Project Not Found - Greenleaf Holdings Ltd.",
+      title: "Project Not Found - Green Garden City",
     };
   }
 
   return {
-    title: `${project.title} - Greenleaf Holdings Ltd.`,
-    description: `Explore the master plan, amenities, and details of ${project.title} in Greenleaf Holdings Ltd..`,
+    title: `${project.title} - Green Garden City`,
+    description: `Explore the master plan, amenities, and details of ${project.title} in Green Garden City.`,
   };
 }
 

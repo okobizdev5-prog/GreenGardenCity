@@ -93,13 +93,13 @@ export function Navbar({ onBookClick }: NavbarProps) {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${isScrolled
-          ? "bg-white/95 backdrop-blur-md shadow-sm py-3 border-b border-gray-100"
-          : "bg-white py-4"
+        ? "bg-white/95 backdrop-blur-md shadow-sm py-3 border-b border-gray-100"
+        : "bg-white py-4"
         }`}
     >
       <div className="container mx-auto px-4 md:px-8 flex justify-between items-center max-w-7xl">
         <Link href="/" className="font-bold text-2xl text-green-700 tracking-tight flex items-center gap-1 hover:opacity-90">
-          Greenleaf Holdings Ltd.
+          Green Garden City
         </Link>
 
         {/* Desktop Nav */}
@@ -113,8 +113,8 @@ export function Navbar({ onBookClick }: NavbarProps) {
                   <Link
                     href={link.href}
                     className={`text-sm font-medium px-4 py-2 rounded-lg transition-all inline-flex items-center gap-1 ${isActive || pathname.includes("category=land")
-                        ? "text-green-700 bg-green-50 font-bold"
-                        : "text-gray-600 hover:text-green-700 hover:bg-gray-50"
+                      ? "text-green-700 bg-green-50 font-bold"
+                      : "text-gray-600 hover:text-green-700 hover:bg-gray-50"
                       }`}
                   >
                     {link.name}
@@ -133,8 +133,8 @@ export function Navbar({ onBookClick }: NavbarProps) {
                         <div key={status} className="space-y-4 text-left">
                           <h4 className="text-xs font-extrabold text-green-800 uppercase tracking-wider border-b border-gray-100 pb-1.5 flex items-center gap-1.5">
                             <span className={`w-2 h-2 rounded-full ${status === "Ongoing" ? "bg-blue-500 animate-pulse" :
-                                status === "Upcoming" ? "bg-amber-500" :
-                                  "bg-green-500"
+                              status === "Upcoming" ? "bg-amber-500" :
+                                "bg-green-500"
                               }`} />
                             {status}
                           </h4>
@@ -176,8 +176,8 @@ export function Navbar({ onBookClick }: NavbarProps) {
                   <Link
                     href={link.href}
                     className={`text-sm font-medium px-4 py-2 rounded-lg transition-all inline-flex items-center gap-1 ${isActive || pathname.includes("category=apartment")
-                        ? "text-green-700 bg-green-50 font-bold"
-                        : "text-gray-600 hover:text-green-700 hover:bg-gray-50"
+                      ? "text-green-700 bg-green-50 font-bold"
+                      : "text-gray-600 hover:text-green-700 hover:bg-gray-50"
                       }`}
                   >
                     {link.name}
@@ -194,8 +194,8 @@ export function Navbar({ onBookClick }: NavbarProps) {
                         <div key={status} className="space-y-4 text-left">
                           <h4 className="text-xs font-extrabold text-green-800 uppercase tracking-wider border-b border-gray-100 pb-1.5 flex items-center gap-1.5">
                             <span className={`w-2 h-2 rounded-full ${status === "Ongoing" ? "bg-blue-500 animate-pulse" :
-                                status === "Upcoming" ? "bg-amber-500" :
-                                  "bg-green-500"
+                              status === "Upcoming" ? "bg-amber-500" :
+                                "bg-green-500"
                               }`} />
                             {status}
                           </h4>
@@ -224,8 +224,8 @@ export function Navbar({ onBookClick }: NavbarProps) {
                 key={link.name}
                 href={link.href}
                 className={`text-sm font-medium px-4 py-2 rounded-lg transition-all ${isActive
-                    ? "text-green-700 bg-green-50 font-bold"
-                    : "text-gray-600 hover:text-green-700 hover:bg-gray-50"
+                  ? "text-green-700 bg-green-50 font-bold"
+                  : "text-gray-600 hover:text-green-700 hover:bg-gray-50"
                   }`}
               >
                 {link.name}
@@ -297,8 +297,8 @@ export function Navbar({ onBookClick }: NavbarProps) {
                             >
                               <span className="flex items-center gap-1.5">
                                 <span className={`w-1.5 h-1.5 rounded-full ${status === "Ongoing" ? "bg-blue-500" :
-                                    status === "Upcoming" ? "bg-amber-500" :
-                                      "bg-green-500"
+                                  status === "Upcoming" ? "bg-amber-500" :
+                                    "bg-green-500"
                                   }`} />
                                 {status}
                               </span>
@@ -370,8 +370,8 @@ export function Navbar({ onBookClick }: NavbarProps) {
                             >
                               <span className="flex items-center gap-1.5">
                                 <span className={`w-1.5 h-1.5 rounded-full ${status === "Ongoing" ? "bg-blue-500" :
-                                    status === "Upcoming" ? "bg-amber-500" :
-                                      "bg-green-500"
+                                  status === "Upcoming" ? "bg-amber-500" :
+                                    "bg-green-500"
                                   }`} />
                                 {status}
                               </span>
@@ -410,8 +410,8 @@ export function Navbar({ onBookClick }: NavbarProps) {
                 key={link.name}
                 href={link.href}
                 className={`text-base font-semibold px-4 py-3 rounded-lg ${isActive
-                    ? "text-green-700 bg-green-50 font-bold"
-                    : "text-gray-700 hover:text-green-700 hover:bg-gray-50"
+                  ? "text-green-700 bg-green-50 font-bold"
+                  : "text-gray-700 hover:text-green-700 hover:bg-gray-50"
                   }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >

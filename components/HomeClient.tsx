@@ -1,6 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination, Navigation as SwiperNavigation } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/navigation";
 import {
   Trees,
   Compass,
@@ -22,8 +27,13 @@ import {
   Search,
   ArrowUpDown,
   AlertCircle,
-  Home
+  Home,
+  X,
+  Map,
+  Navigation,
+  ArrowDown
 } from "lucide-react";
+import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { BookingModal } from "@/components/BookingModal";
 
@@ -50,24 +60,148 @@ type BannerData = {
   secondaryBtnLink?: string;
 };
 
+import type { AboutData } from "@/app/actions/aboutActions";
+import type { GalleryItemData } from "@/app/actions/galleryActions";
+import { createReviewAction } from "@/app/actions/reviewActions";
+
+type ReviewData = {
+  id: string;
+  name: string;
+  role: string;
+  rating: number;
+  comment: string;
+};
+
 type HomeClientProps = {
   initialProjects: Project[];
   banner?: BannerData;
   banners?: BannerData[];
+  about?: AboutData;
+  galleryItems?: GalleryItemData[];
+  reviews?: ReviewData[];
 };
 
-export function HomeClient({ initialProjects, banner, banners }: HomeClientProps) {
+const isVideo = (url?: string) => {
+  if (!url) return false;
+  const videoExtensions = [".mp4", ".webm", ".ogg", ".mov", ".m4v"];
+  return videoExtensions.some(ext => url.toLowerCase().endsWith(ext)) || url.includes("/uploads/video") || url.includes("video");
+};
+
+type VideoSlideProps = {
+  src: string;
+  isActive: boolean;
+  onEnded: () => void;
+  onError: () => void;
+};
+
+function VideoSlide({ src, isActive, onEnded, onError }: VideoSlideProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isActive) {
+      video.currentTime = 0;
+      video.play().catch(err => {
+        console.warn("Autoplay blocked or video failed to play:", err);
+      });
+    } else {
+      video.pause();
+    }
+  }, [isActive, src]);
+
+  return (
+    <video
+      ref={videoRef}
+      src={src}
+      muted
+      playsInline
+      onEnded={onEnded}
+      onError={onError}
+      className="w-full h-full object-cover"
+    />
+  );
+}
+
+const fallbackReviews: ReviewData[] = [
+  {
+    id: "fallback-1",
+    name: "ড. মো: আনিসুর রহমান",
+    role: "সরকারি কর্মকর্তা ও প্লট ক্রেতা",
+    rating: 5,
+    comment: "গ্রীন গার্ডেন সিটি ঢাকার এত কাছে এবং সম্পূর্ণ পরিকল্পিত উপায়ে তৈরি করা হচ্ছে দেখে আমি খুবই মুগ্ধ। বিশেষ করে তাদের চওড়া রাস্তা এবং লেকের প্রাকৃতিক পরিবেশ আমাদের মতো অবসরপ্রাপ্ত মানুষের বসবাসের জন্য আদর্শ।",
+  },
+  {
+    id: "fallback-2",
+    name: "সায়েম চৌধুরী",
+    role: "ব্যবসায়ী ও বিনিয়োগকারী",
+    rating: 5,
+    comment: "আমি ৩টি প্লট নিয়েছি ভবিষ্যৎ বিনিয়োগের জন্য। রেজিস্ট্রি ও কাগজপত্র বুঝে পাওয়ার প্রক্রিয়াটি খুবই স্বচ্ছ এবং ঝামেলামুক্ত ছিল।",
+  },
+  {
+    id: "fallback-3",
+    name: "নুসরাত জাহান লিয়া",
+    role: "আইটি প্রফেশনাল ও গৃহিণী",
+    rating: 5,
+    comment: "বাচ্চাদের খেলার মাঠ, পার্ক এবং বিশাল মসজিদের ডিজাইন আমাকে সবচেয়ে বেশি আকৃষ্ট করেছে। বুকিং করার পর থেকেই তাদের সেবা চমৎকার।",
+  },
+];
+
+export function HomeClient({ initialProjects, banner, banners, about, galleryItems = [], reviews = [] }: HomeClientProps) {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedProjectTitle, setSelectedProjectTitle] = useState("General Inquiry");
   const [activeImageIndexes, setActiveImageIndexes] = useState<Record<string, number>>({});
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  // Projects filter & sort states for Development Projects section
-  const [homeSearchQuery, setHomeSearchQuery] = useState("");
-  const [homeMainCategory, setHomeMainCategory] = useState<"All" | "Land" | "Apartment">("All");
-  const [homeSubCategory, setHomeSubCategory] = useState<string>("All");
-  const [homeStatusFilter, setHomeStatusFilter] = useState<string>("All");
-  const [homeSortBy, setHomeSortBy] = useState<string>("newest");
+  // Review modal state
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviewName, setReviewName] = useState("");
+  const [reviewRole, setReviewRole] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewHoverRating, setReviewHoverRating] = useState(0);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+
+  const displayReviews = reviews.length > 0 ? reviews : fallbackReviews;
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewName.trim() || !reviewComment.trim()) return;
+    setIsSubmittingReview(true);
+    try {
+      const res = await createReviewAction({
+        name: reviewName.trim(),
+        role: reviewRole.trim() || "Client",
+        rating: reviewRating,
+        comment: reviewComment.trim(),
+      });
+      if (res.success) {
+        setReviewSubmitted(true);
+        setReviewName("");
+        setReviewRole("");
+        setReviewRating(5);
+        setReviewComment("");
+        setTimeout(() => {
+          setReviewSubmitted(false);
+          setIsReviewModalOpen(false);
+        }, 3000);
+      } else {
+        alert(res.error || "Failed to submit review.");
+      }
+    } catch {
+      alert("Something went wrong. Please try again.");
+    }
+    setIsSubmittingReview(false);
+  };
+
+  const handleBookVisit = (projectTitle: string = "General Inquiry") => {
+    setSelectedProjectTitle(projectTitle);
+    setIsBookingOpen(true);
+  };
 
   // Normalize banners list (fallback to banner or default if empty)
   const activeBanners: BannerData[] =
@@ -80,7 +214,7 @@ export function HomeClient({ initialProjects, banner, banners }: HomeClientProps
             badgeText: "100% GATED & SECURE ECO-CITY",
             title: "Discover the Future of",
             highlightTitle: "Urban Living",
-            subtitle: "Experience the perfect harmony of modern architecture, advanced smart facilities, and pristine natural serenity. Your dream plot awaits at Greenleaf Holdings Ltd..",
+            subtitle: "Experience the perfect harmony of modern architecture, advanced smart facilities, and pristine natural serenity. Your dream plot awaits at Green Garden City.",
             bgImage: "/hero_background.png",
             highlights: [
               "Immediate Plot Registration",
@@ -95,14 +229,23 @@ export function HomeClient({ initialProjects, banner, banners }: HomeClientProps
           }
         ];
 
-  // Auto-play carousel slider every 6 seconds if multiple banners exist
+  // Auto-play carousel slider based on slide media type
   useEffect(() => {
     if (activeBanners.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentSlideIndex(prev => (prev + 1) % activeBanners.length);
+
+    const currentBanner = activeBanners[currentSlideIndex];
+    const isVid = isVideo(currentBanner?.bgImage);
+
+    // If it's a video, we wait for onEnded to fire from the VideoSlide component.
+    if (isVid) return;
+
+    // If it's a photo, set a 6-second timer
+    const timer = setTimeout(() => {
+      handleNextSlide();
     }, 6000);
-    return () => clearInterval(interval);
-  }, [activeBanners.length]);
+
+    return () => clearTimeout(timer);
+  }, [currentSlideIndex, activeBanners]);
 
   const handleNextSlide = () => {
     setCurrentSlideIndex(prev => (prev + 1) % activeBanners.length);
@@ -114,109 +257,49 @@ export function HomeClient({ initialProjects, banner, banners }: HomeClientProps
 
   const currentBanner = activeBanners[currentSlideIndex] || activeBanners[0];
 
-  // Helper to normalize and deduplicate category names (e.g. "Phase 2" -> "Land - Phase 2")
-  const normalizeCatName = (cat: string) => {
-    if (!cat) return "";
-    const cleaned = cat.trim();
-    if (/^phase\s*\d+/i.test(cleaned)) {
-      const match = cleaned.match(/phase\s*(\d+)/i);
-      if (match) return `Land - Phase ${match[1]}`;
-    }
-    return cleaned;
+  // Find project for Residential Slot
+  const residentialProject = initialProjects.find(p => p.category?.toLowerCase().includes("residential"))
+    || initialProjects.find(p => p.title?.toLowerCase().includes("residential"))
+    || null;
+
+  // Find project for Commercial Slot
+  const commercialProject = initialProjects.find(p => p.category?.toLowerCase().includes("commercial"))
+    || initialProjects.find(p => p.title?.toLowerCase().includes("commercial"))
+    || null;
+
+  // Find project for House & Garden Slot
+  const houseGardenProject = initialProjects.find(p => p.category?.toLowerCase().includes("house") || p.category?.toLowerCase().includes("garden"))
+    || initialProjects.find(p => p.title?.toLowerCase().includes("house") || p.title?.toLowerCase().includes("garden"))
+    || null;
+
+  const resCard = residentialProject || initialProjects[0] || {
+    id: "default-res",
+    title: "Residential Plots",
+    description: "Premium eco-friendly residential plots designed for sustainable living. Complete with 30-40 ft wide carpeting roads, gated security, lakes, and utilities.",
+    images: ["/project_image1.png"],
+    category: "Residential",
+    status: "Delivered"
   };
 
-  // Dynamic deduplicated Land subcategories for Development Projects section
-  const homeLandCategories = Array.from(
-    new Set(
-      initialProjects
-        .map((p) => normalizeCatName(p.category || "Land - Phase 1"))
-        .filter(
-          (cat) =>
-            !cat.toLowerCase().includes("apartment") &&
-            !cat.toLowerCase().includes("flat")
-        )
-    )
-  );
-
-  const homeSubCategoryTabs = ["All", ...homeLandCategories];
-
-  // Helper to safely strip HTML tags for search comparison
-  const getPlainText = (html: string) => {
-    if (!html) return "";
-    return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  const commCard = commercialProject || initialProjects[1] || {
+    id: "default-comm",
+    title: "Commercial Hubs",
+    description: "High-value commercial land options adjacent to the expressway, offering maximum visibility and business infrastructure for investors.",
+    images: ["/project_image2.png"],
+    category: "Commercial",
+    status: "Upcoming"
   };
 
-  // Filter projects dynamically for homepage section
-  const filteredHomeProjects = initialProjects.filter((project) => {
-    const textSnippet = getPlainText(project.description).toLowerCase();
-    const query = homeSearchQuery.toLowerCase();
-
-    const matchesSearch =
-      project.title.toLowerCase().includes(query) || textSnippet.includes(query);
-
-    const categoryLower = (project.category || "").toLowerCase();
-    const isApartment = categoryLower.includes("apartment") || categoryLower.includes("flat");
-    const isLand = !isApartment;
-
-    let matchesMainCat = true;
-    if (homeMainCategory === "Apartment") matchesMainCat = isApartment;
-    else if (homeMainCategory === "Land") matchesMainCat = isLand;
-
-    let matchesSubCat = true;
-    if ((homeMainCategory === "Land" || homeMainCategory === "All") && homeSubCategory !== "All") {
-      const normProjectCat = normalizeCatName(project.category || "").toLowerCase();
-      const normActiveSub = normalizeCatName(homeSubCategory).toLowerCase();
-      matchesSubCat =
-        normProjectCat === normActiveSub ||
-        normProjectCat.includes(normActiveSub) ||
-        normActiveSub.includes(normProjectCat);
-    }
-
-    let matchesStatus = true;
-    if (homeStatusFilter !== "All") {
-      matchesStatus = (project.status || "").toLowerCase() === homeStatusFilter.toLowerCase();
-    }
-
-    return matchesSearch && matchesMainCat && matchesSubCat && matchesStatus;
-  });
-
-  // Sort filtered projects
-  const sortedHomeProjects = [...filteredHomeProjects].sort((a, b) => {
-    if (homeSortBy === "oldest") {
-      return (a.id || "").localeCompare(b.id || "");
-    } else if (homeSortBy === "title-asc") {
-      return a.title.localeCompare(b.title);
-    } else if (homeSortBy === "title-desc") {
-      return b.title.localeCompare(a.title);
-    } else if (homeSortBy === "category") {
-      return (a.category || "").localeCompare(b.category || "");
-    } else if (homeSortBy === "status") {
-      return (a.status || "").localeCompare(b.status || "");
-    }
-    // Default: newest first
-    return (b.id || "").localeCompare(a.id || "");
-  });
-
-  const handleBookVisit = (projectTitle: string = "General Inquiry") => {
-    setSelectedProjectTitle(projectTitle);
-    setIsBookingOpen(true);
+  const gardenCard = houseGardenProject || initialProjects[2] || {
+    id: "default-garden",
+    title: "House & Garden Plots",
+    description: "Luxurious garden estate land options featuring private greenery, natural lake access, and open landscapes for beautiful holiday homes.",
+    images: ["/project_image3.png"],
+    category: "House Garden",
+    status: "Ongoing"
   };
 
-  const heroBg = currentBanner.bgImage || "/hero_background.png";
-  const badgeText = currentBanner.badgeText || "100% GATED & SECURE ECO-CITY";
-  const titleText = currentBanner.title || "Discover the Future of";
-  const highlightTitleText = currentBanner.highlightTitle || "Urban Living";
-  const subtitleText = currentBanner.subtitle || "Experience the perfect harmony of modern architecture, advanced smart facilities, and pristine natural serenity. Your dream plot awaits at Greenleaf Holdings Ltd..";
-  const highlightsList = currentBanner.highlights && currentBanner.highlights.length > 0 ? currentBanner.highlights : [
-    "Immediate Plot Registration",
-    "Electricity & Gas Connections Ready",
-    "15 Mins Drive from Hazrat Shahjalal Airport",
-    "Flexible Installment Plans Available"
-  ];
-  const primaryBtnText = currentBanner.primaryBtnText || "Book a Site Visit";
-  const primaryBtnLink = currentBanner.primaryBtnLink || "#booking";
-  const secondaryBtnText = currentBanner.secondaryBtnText || "Explore Plots";
-  const secondaryBtnLink = currentBanner.secondaryBtnLink || "#plots";
+  const finalThreeCards = [resCard, commCard, gardenCard];
 
   const amenities = [
     {
@@ -257,341 +340,564 @@ export function HomeClient({ initialProjects, banner, banners }: HomeClientProps
       <Navbar onBookClick={() => handleBookVisit("Not Sure")} />
 
       {/* Hero Carousel Section */}
-      <section
-        className="relative min-h-[90vh] flex items-center justify-center pt-24 pb-16 overflow-hidden bg-cover bg-center transition-all duration-700 ease-in-out group"
-        style={{ backgroundImage: `url('${heroBg}')` }}
-      >
-        {/* Dark overlay with green tint */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-green-950/85 via-green-900/65 to-black/55 z-0 transition-opacity duration-700"></div>
+      <section className="relative w-full h-[40vh] sm:h-[55vh] md:h-[70vh] lg:h-[80vh] pt-18 md:pt-20 overflow-hidden bg-gray-950">
+        <div className="relative w-full h-full">
+          {activeBanners.map((banner, idx) => {
+            const mediaUrl = banner.bgImage || "/hero_background.png";
+            const isActive = idx === currentSlideIndex;
+            const isVid = isVideo(mediaUrl);
 
-        <div className="container mx-auto px-4 md:px-8 relative z-10 text-white grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          <div className="lg:col-span-8 space-y-6 text-center lg:text-left transition-all duration-500 animate-in fade-in key={currentSlideIndex}">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-800/60 border border-green-700/50 backdrop-blur-md text-xs font-semibold tracking-wider text-green-200 uppercase">
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              {badgeText}
-            </div>
-
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
-              {titleText} <br className="hidden md:inline" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-300 via-emerald-400 to-amber-300">
-                {highlightTitleText}
-              </span>
-            </h1>
-
-            <p className="text-lg md:text-xl text-gray-200 max-w-2xl font-light leading-relaxed">
-              {subtitleText}
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
-              <button
-                onClick={() => {
-                  if (primaryBtnLink === "#booking" || primaryBtnLink.startsWith("#book")) {
-                    handleBookVisit("Not Sure");
-                  } else if (primaryBtnLink.startsWith("/")) {
-                    window.location.href = primaryBtnLink;
-                  } else if (primaryBtnLink.startsWith("#")) {
-                    const el = document.querySelector(primaryBtnLink);
-                    if (el) el.scrollIntoView({ behavior: "smooth" });
-                    else handleBookVisit("Not Sure");
-                  } else {
-                    handleBookVisit("Not Sure");
-                  }
-                }}
-                className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white font-semibold px-8 py-4 rounded-lg shadow-lg hover:shadow-green-900/40 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+            return (
+              <div
+                key={banner.id || idx}
+                className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                  }`}
               >
-                <CalendarDays className="h-5 w-5 text-green-200" />
-                {primaryBtnText}
-              </button>
-              <a
-                href={secondaryBtnLink}
-                className="w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white border border-white/30 backdrop-blur-md font-semibold px-8 py-4 rounded-lg transition text-center flex items-center justify-center gap-2"
-              >
-                {secondaryBtnText}
-                <ArrowRight className="h-4 w-4" />
-              </a>
-            </div>
-          </div>
-
-          {/* Quick Info Panel */}
-          <div className="lg:col-span-4 lg:block transition-all duration-500 animate-in fade-in">
-            <div className="glass-panel p-6 rounded-2xl border border-white/20 text-gray-900 shadow-2xl max-w-sm mx-auto space-y-6">
-              <h3 className="text-lg font-bold text-green-900 border-b border-green-950/10 pb-3 flex items-center gap-2">
-                <Compass className="h-5 w-5 text-green-700" /> Key Highlights
-              </h3>
-              <ul className="space-y-4 text-sm text-gray-700 font-medium">
-                {highlightsList.map((item, idx) => (
-                  <li key={idx} className="flex items-center gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700 font-bold text-xs">✓</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+                {isVid ? (
+                  <VideoSlide
+                    src={mediaUrl}
+                    isActive={isActive}
+                    onEnded={handleNextSlide}
+                    onError={handleNextSlide}
+                  />
+                ) : (
+                  <img
+                    src={mediaUrl}
+                    alt={`Slide ${idx + 1}`}
+                    className={`w-full h-full object-cover ${isActive ? "animate-kenburns" : ""}`}
+                  />
+                )}
+                {/* Subtle dark overlay for premium look */}
+                <div className="absolute inset-0 bg-black/15 z-10"></div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Carousel Navigation Arrows (only if multiple banners exist) */}
+        {/* Carousel Dot Indicators (only if multiple banners exist) */}
         {activeBanners.length > 1 && (
-          <>
-            <button
-              onClick={handlePrevSlide}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md border border-white/20 flex items-center justify-center transition opacity-80 group-hover:opacity-100 active:scale-95 shadow-lg"
-              title="Previous Slide"
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </button>
-            <button
-              onClick={handleNextSlide}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md border border-white/20 flex items-center justify-center transition opacity-80 group-hover:opacity-100 active:scale-95 shadow-lg"
-              title="Next Slide"
-            >
-              <ChevronRight className="h-6 w-6" />
-            </button>
-
-            {/* Carousel Dot Indicators */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5 bg-black/30 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
-              {activeBanners.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentSlideIndex(idx)}
-                  className={`h-2.5 rounded-full transition-all duration-300 ${idx === currentSlideIndex
-                      ? "w-8 bg-green-400"
-                      : "w-2.5 bg-white/50 hover:bg-white/80"
-                    }`}
-                  title={`Go to slide ${idx + 1}`}
-                />
-              ))}
-            </div>
-          </>
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-25 flex items-center gap-2.5 bg-black/35 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+            {activeBanners.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentSlideIndex(idx)}
+                className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${idx === currentSlideIndex
+                  ? "w-8 bg-green-400"
+                  : "w-2.5 bg-white/50 hover:bg-white/80"
+                  }`}
+                title={`Go to slide ${idx + 1}`}
+              />
+            ))}
+          </div>
         )}
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-20 bg-white">
-        <div className="container mx-auto px-4 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <section id="about" className="py-12 bg-white">
+        <div className="container mx-auto px-4 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-12 items-center">
           <div className="lg:col-span-6 space-y-6">
-            <span className="text-sm font-bold text-green-700 uppercase tracking-widest">About Our Vision</span>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-green-900 tracking-tight leading-tight">
-              A Glimpse into Sustainable Luxury
+            <span className="inline-block px-3 py-1 rounded-full bg-green-50 text-green-700 text-[10px] sm:text-xs font-bold uppercase tracking-widest border border-green-100">
+              {about?.badge || "About Our Vision"}
+            </span>
+            <h2 className="text-xl sm:text-2xl md:text-4xl font-extrabold text-green-900 tracking-tight leading-tight">
+              {about?.title || "A Glimpse into Sustainable Luxury"}
             </h2>
-            <p className="text-gray-600 leading-relaxed">
-              Greenleaf Holdings Ltd. is carefully crafted to offer a highly secure, pollution-free, and natural living environment. Our community is designed with premium infrastructure and modern layouts, catering to families seeking luxury coupled with green surroundings.
-            </p>
-            <p className="text-gray-600 leading-relaxed">
-              Every detail, from the layout of internal roads to the designated park spaces, has been designed by urban planners to guarantee a high quality of life and great long-term return on investment.
-            </p>
 
-            <div className="grid grid-cols-2 gap-6 pt-4 border-t border-gray-100">
-              <div>
-                <h4 className="text-3xl font-extrabold text-green-700">100+</h4>
-                <p className="text-sm text-gray-500 font-medium">Happy Plot Buyers</p>
-              </div>
-              <div>
-                <h4 className="text-3xl font-extrabold text-green-700">40%</h4>
-                <p className="text-sm text-gray-500 font-medium">Dedicated Greenery & Lakes</p>
-              </div>
+            {/* Video / Media container for Mobile only (renders below Title, before Description) */}
+            <div className="block lg:hidden relative rounded-2xl overflow-hidden shadow-xl my-4">
+              {isVideo(about?.mediaUrl || "/vision_image.png") ? (
+                <video
+                  src={about?.mediaUrl || "/vision_image.png"}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full object-cover aspect-video hover:scale-102 transition duration-500"
+                />
+              ) : (
+                <img
+                  src={about?.mediaUrl || "/vision_image.png"}
+                  alt={about?.title || "Green Garden City Vision"}
+                  className="w-full object-cover aspect-video hover:scale-105 transition duration-500"
+                />
+              )}
             </div>
-          </div>
 
-          <div className="lg:col-span-6">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white ring-4 ring-green-950/5">
-              <img
-                src="/vision_image.png"
-                alt="Greenleaf Holdings Ltd. Vision"
-                className="w-full object-cover aspect-video lg:aspect-[4/3] hover:scale-105 transition duration-500"
+            {about?.desc1 && (
+              <div
+                className="text-xs sm:text-sm md:text-base text-gray-600 leading-relaxed rich-text-content"
+                dangerouslySetInnerHTML={{ __html: about.desc1 }}
               />
+            )}
+
+            <div className="grid grid-cols-2 gap-4 pt-4">
+              <div className="bg-green-50/45 p-4 sm:p-5 rounded-2xl hover:bg-green-50/60 transition-colors duration-300">
+                <h4 className="text-xl sm:text-2xl font-extrabold text-green-800">
+                  {about?.stat1Num || "100+"}
+                </h4>
+                <p className="text-[10px] sm:text-xs text-gray-600 font-semibold mt-1">
+                  {about?.stat1Label || "Happy Plot Buyers"}
+                </p>
+              </div>
+              <div className="bg-green-50/45 p-4 sm:p-5 rounded-2xl hover:bg-green-50/60 transition-colors duration-300">
+                <h4 className="text-xl sm:text-2xl font-extrabold text-green-800">
+                  {about?.stat2Num || "40%"}
+                </h4>
+                <p className="text-[10px] sm:text-xs text-gray-600 font-semibold mt-1">
+                  {about?.stat2Label || "Dedicated Greenery & Lakes"}
+                </p>
+              </div>
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="pt-4 flex w-full">
+              <button
+                onClick={() => handleBookVisit("About Vision - Book Site Visit")}
+                className="group relative overflow-hidden animate-shimmer animate-glow-ring bg-green-700 hover:bg-green-800 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 flex items-center justify-center gap-2.5 text-sm cursor-pointer w-full sm:w-auto text-center active:scale-97 hover:scale-103 shadow-lg"
+              >
+                <CalendarDays className="h-4.5 w-4.5 text-amber-300 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shrink-0" />
+                <span className="whitespace-nowrap">Book a Site Visit</span>
+              </button>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Amenities Section */}
-      <section id="amenities" className="py-20 bg-gradient-to-b from-gray-50 to-white border-t border-gray-100">
-        <div className="container mx-auto px-4 md:px-8 text-center max-w-3xl mb-16 space-y-4">
-          <span className="text-sm font-bold text-green-700 uppercase tracking-widest">Designed for Convenience</span>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-green-900 tracking-tight">
-            Premium Amenities
-          </h2>
-          <p className="text-gray-600">
-            Enjoy an active and healthy lifestyle with modern urban facilities, parks, safety systems, and reliable infrastructure.
-          </p>
-        </div>
-
-        <div className="container mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {amenities.map((item, index) => (
-            <div
-              key={index}
-              className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition hover:-translate-y-1 duration-300 group"
-            >
-              <div className="h-12 w-12 rounded-lg bg-green-50 text-green-700 flex items-center justify-center mb-6 group-hover:bg-green-700 group-hover:text-white transition duration-300">
-                <item.icon className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-green-800 transition">
-                {item.title}
-              </h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                {item.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Projects Showcase Section */}
-      <section id="plots" className="py-20 bg-gray-50 border-t border-gray-150">
-        <div className="container mx-auto px-4 md:px-8 text-center max-w-3xl mb-12 space-y-4">
-          <span className="text-sm font-bold text-green-700 uppercase tracking-widest">Master Blueprints</span>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-green-900 tracking-tight">
-            Development Projects
-          </h2>
-          <p className="text-gray-600">
-            Explore our premium residential communities, smart commercial hubs, and green ecosystems. Plan your physical site visit today.
-          </p>
-        </div>
-
-        {/* Category Navigation Bar & Sub-category Pills */}
-        <div className="container mx-auto px-4 md:px-8 max-w-7xl mb-10 space-y-3">
-          {/* Main Category Tabs - 100% Fit Responsive Segmented Control */}
-          <div className="grid grid-cols-3 bg-gray-100/90 p-1.5 rounded-2xl border border-gray-200 gap-1">
-            <button
-              onClick={() => {
-                setHomeMainCategory("All");
-                setHomeSubCategory("All");
-              }}
-              className={`py-2.5 px-1 sm:px-4 text-xs sm:text-sm font-extrabold rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1 text-center ${
-                homeMainCategory === "All"
-                  ? "bg-white text-green-800 shadow-sm border border-gray-200/80"
-                  : "text-gray-600 hover:text-green-700"
-              }`}
-            >
-              <Compass className="h-4 w-4 shrink-0 text-green-700 hidden sm:block" />
-              <span>All ({initialProjects.length})</span>
-            </button>
-            <button
-              onClick={() => {
-                setHomeMainCategory("Land");
-                setHomeSubCategory("All");
-              }}
-              className={`py-2.5 px-1 sm:px-4 text-xs sm:text-sm font-extrabold rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1 text-center ${
-                homeMainCategory === "Land"
-                  ? "bg-white text-green-800 shadow-sm border border-gray-200/80"
-                  : "text-gray-600 hover:text-green-700"
-              }`}
-            >
-              <Compass className="h-4 w-4 shrink-0 text-green-700 hidden sm:block" />
-              <span>Land</span>
-            </button>
-            <button
-              onClick={() => {
-                setHomeMainCategory("Apartment");
-              }}
-              className={`py-2.5 px-1 sm:px-4 text-xs sm:text-sm font-extrabold rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1 text-center ${
-                homeMainCategory === "Apartment"
-                  ? "bg-white text-green-800 shadow-sm border border-gray-200/80"
-                  : "text-gray-600 hover:text-green-700"
-              }`}
-            >
-              <Home className="h-4 w-4 shrink-0 text-green-700 hidden sm:block" />
-              <span>Apartments</span>
-            </button>
-          </div>
-
-          {/* Dynamic Sub-Category Pills - Clean Wrap */}
-          {(homeMainCategory === "Land" || homeMainCategory === "All") && (
-            <div className="flex flex-wrap items-center justify-start sm:justify-center gap-1.5 pt-1">
-              {homeSubCategoryTabs.map((subTab) => {
-                const isActive = homeSubCategory === subTab;
-                return (
-                  <button
-                    key={subTab}
-                    onClick={() => setHomeSubCategory(subTab)}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition ${
-                      isActive
-                        ? "bg-green-700 border-green-800 text-white shadow-xs"
-                        : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-800"
-                    }`}
-                  >
-                    {subTab === "All" ? "All Phases" : subTab}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Streamlined Search, Status & Sorting Control Bar */}
-          <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-sm space-y-3">
-            {/* Search Input */}
-            <div className="relative w-full">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                value={homeSearchQuery}
-                onChange={e => setHomeSearchQuery(e.target.value)}
-                placeholder="Search by title, location, keywords..."
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition"
-              />
-            </div>
-
-            {/* Filter & Sort Dropdowns Stack for 100% Mobile Fit */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-4">
-              {/* Status Filter */}
-              <div className="flex items-center justify-between gap-2 bg-gray-50 px-3 py-2 rounded-xl border border-gray-200 flex-1">
-                <span className="text-xxs font-extrabold text-gray-500 uppercase tracking-wider whitespace-nowrap">STATUS:</span>
-                <select
-                  value={homeStatusFilter}
-                  onChange={e => setHomeStatusFilter(e.target.value)}
-                  className="py-1 px-2 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition text-right"
-                >
-                  <option value="All">All Statuses</option>
-                  <option value="Ongoing">Ongoing</option>
-                  <option value="Upcoming">Upcoming</option>
-                  <option value="Delivered">Delivered</option>
-                </select>
-              </div>
-
-              {/* Sort By Dropdown */}
-              <div className="flex items-center justify-between gap-2 bg-gray-50 px-3 py-2 rounded-xl border border-gray-200 flex-1">
-                <div className="flex items-center gap-1">
-                  <ArrowUpDown className="h-3.5 w-3.5 text-gray-500 shrink-0" />
-                  <span className="text-xxs font-extrabold text-gray-500 uppercase tracking-wider whitespace-nowrap">SORT BY:</span>
-                </div>
-                <select
-                  value={homeSortBy}
-                  onChange={e => setHomeSortBy(e.target.value)}
-                  className="py-1 px-2 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition text-right"
-                >
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="title-asc">Title (A-Z)</option>
-                  <option value="title-desc">Title (Z-A)</option>
-                  <option value="category">Category</option>
-                  <option value="status">Status</option>
-                </select>
-              </div>
-
-              {/* Reset Filters */}
-              {(homeSearchQuery || homeMainCategory !== "All" || homeSubCategory !== "All" || homeStatusFilter !== "All" || homeSortBy !== "newest") && (
-                <button
-                  onClick={() => {
-                    setHomeSearchQuery("");
-                    setHomeMainCategory("All");
-                    setHomeSubCategory("All");
-                    setHomeStatusFilter("All");
-                    setHomeSortBy("newest");
-                  }}
-                  className="text-xs font-bold text-green-700 hover:text-green-800 underline transition text-center py-1 whitespace-nowrap self-center sm:self-auto"
-                >
-                  Reset Filters
-                </button>
+          {/* Video / Media container for Desktop only */}
+          <div className="hidden lg:block lg:col-span-6">
+            <div className="relative rounded-2xl overflow-hidden shadow-xl">
+              {isVideo(about?.mediaUrl || "/vision_image.png") ? (
+                <video
+                  src={about?.mediaUrl || "/vision_image.png"}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full object-cover aspect-video lg:aspect-4/3 hover:scale-102 transition duration-500"
+                />
+              ) : (
+                <img
+                  src={about?.mediaUrl || "/vision_image.png"}
+                  alt={about?.title || "Green Garden City Vision"}
+                  className="w-full object-cover aspect-video lg:aspect-4/3 hover:scale-105 transition duration-500"
+                />
               )}
             </div>
           </div>
         </div>
+      </section>
 
-        <div className="container mx-auto px-4 md:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {sortedHomeProjects.map((project) => {
+      {/* Photo Gallery Section */}
+      <section id="gallery" className="py-12 bg-linear-to-b from-white to-gray-50 border-t border-b border-gray-100/50">
+        <div className="container mx-auto px-4 md:px-8 max-w-7xl">
+          <div className="text-center max-w-3xl mx-auto mb-10 space-y-4">
+            <span className="text-sm font-bold text-green-700 uppercase tracking-widest">Master Plan & Landscape</span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-green-900 tracking-tight">
+              Photo Gallery
+            </h2>
+            <p className="text-gray-500 font-medium">
+              A visual tour of the serene natural surroundings, modern internal roads, and premium infrastructure design at Green Garden City.
+            </p>
+          </div>
+
+          {galleryItems && galleryItems.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              {galleryItems.map((item, index) => (
+                <div
+                  key={item.id || index}
+                  onClick={() => {
+                    setLightboxIndex(index);
+                    setIsLightboxOpen(true);
+                  }}
+                  className="group relative aspect-square bg-gray-100 rounded-2xl overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1.5 transition-all duration-500 cursor-pointer"
+                >
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-700"
+                  />
+                  {/* Visual hover indicator */}
+                  <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <span className="bg-white/95 text-green-950 font-bold text-xxs px-3.5 py-1.5 rounded-full shadow-md backdrop-blur-xs scale-90 group-hover:scale-100 transition-transform duration-300">
+                      View Fullscreen 🔍
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-3xl border border-dashed border-gray-200 p-12 text-center max-w-xl mx-auto shadow-xs">
+              <ImageIcon className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 font-medium">Actual site photos will be available soon.</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Route Timeline Section */}
+      <section id="route" className="py-12 bg-linear-to-b from-white to-gray-50/50 border-t border-gray-100/50 relative overflow-hidden">
+        {/* Subtle decorative background geographic elements */}
+        <div className="absolute -top-12 -left-12 w-64 h-64 bg-green-500/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="container mx-auto px-4 md:px-8 max-w-7xl space-y-10 relative z-10">
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-green-50 text-green-700 text-xs font-bold uppercase tracking-widest border border-green-100">
+              <Map className="h-4 w-4 text-green-600" /> Project Location Map
+            </span>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-green-900 tracking-tight leading-tight">
+              Route & Waypoint Guide
+            </h2>
+            <p className="text-gray-500 font-medium text-sm md:text-base leading-relaxed">
+              Follow our animated GPS route waypoints to easily drive to Green Garden City from Kuril Flyover.
+            </p>
+          </div>
+
+          {/* Timeline Grid */}
+          <div className="relative">
+            {/* SVG Flowing Highway Path (Animate dotted line to represent highway motion) */}
+            <svg className="absolute inset-x-0 top-12.5 h-7.5 w-full hidden lg:block z-0 pointer-events-none" preserveAspectRatio="none" viewBox="0 0 1000 30">
+              <path d="M 50 15 L 950 15" fill="none" stroke="#e2e8f0" strokeWidth="4" strokeLinecap="round" />
+              <path className="animate-route-flow" d="M 50 15 L 950 15" fill="none" stroke="#047857" strokeWidth="4" strokeLinecap="round" strokeDasharray="16 8" />
+            </svg>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 relative z-10">
+              {/* Step 1 */}
+              <div className="group bg-white rounded-3xl p-6 flex flex-col justify-between shadow-xs hover:shadow-xl transition-all duration-500 hover:-translate-y-2 relative overflow-hidden">
+                <div className="absolute top-4 right-6 text-5xl font-extrabold text-green-700/5 select-none font-sans">01</div>
+                <div className="space-y-5">
+                  {/* Pulsing Start waypoint */}
+                  <div className="flex items-center gap-2.5">
+                    <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold shrink-0">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400/40 opacity-75"></span>
+                      <MapPin className="h-4.5 w-4.5 text-blue-600 relative z-10" />
+                    </div>
+                    <span className="text-[10px] font-extrabold uppercase text-blue-700 tracking-wider">Start Point</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-green-800 transition-colors">Kuril Flyover</h3>
+                    <p className="text-xs text-gray-500 leading-relaxed font-light">
+                      Start your journey on the 300 Ft Purbachal Expressway.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-8 pt-4 border-t border-gray-100 text-xxs font-bold text-gray-400 flex items-center gap-2 group-hover:text-green-700 transition-colors">
+                  <Navigation className="h-4 w-4 text-blue-500 rotate-45 group-hover:scale-110 transition-transform" />
+                  <span>300 Ft Expressway</span>
+                </div>
+              </div>
+
+              {/* Mobile Arrow Connector 1-2 */}
+              <div className="flex flex-col items-center justify-center sm:hidden -my-2 z-20 col-span-1">
+                <div className="w-0.5 h-6 border-l-2 border-dashed border-green-500/50" />
+                <div className="bg-green-600 text-white rounded-full p-2 flex items-center justify-center shadow-md animate-bounce">
+                  <ArrowDown className="h-4 w-4 text-white" />
+                </div>
+                <div className="w-0.5 h-6 border-l-2 border-dashed border-green-500/50" />
+              </div>
+
+              {/* Step 2 */}
+              <div className="group bg-white rounded-3xl p-6 flex flex-col justify-between shadow-xs hover:shadow-xl transition-all duration-500 hover:-translate-y-2 relative overflow-hidden">
+                <div className="absolute top-4 right-6 text-5xl font-extrabold text-green-700/5 select-none font-sans">02</div>
+                <div className="space-y-5">
+                  {/* Pulsing waypoint */}
+                  <div className="flex items-center gap-2.5">
+                    <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-750 font-bold shrink-0">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400/30 opacity-75"></span>
+                      <MapPin className="h-4.5 w-4.5 text-green-600 relative z-10" />
+                    </div>
+                    <span className="text-[10px] font-extrabold uppercase text-green-700 tracking-wider">⏱️ 20 Min Drive</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-green-800 transition-colors">Purbachal Club</h3>
+                    <p className="text-xs text-gray-500 leading-relaxed font-light">
+                      Drive straight past Purbachal Club and General Bima office.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-8 pt-4 border-t border-gray-100 text-xxs font-bold text-gray-400 flex items-center gap-2 group-hover:text-green-700 transition-colors">
+                  <Road className="h-4 w-4 text-green-500 group-hover:scale-110 transition-transform" />
+                  <span>Pass Purbachal Sports City</span>
+                </div>
+              </div>
+
+              {/* Mobile Arrow Connector 2-3 */}
+              <div className="flex flex-col items-center justify-center sm:hidden -my-2 z-20 col-span-1">
+                <div className="w-0.5 h-6 border-l-2 border-dashed border-green-500/50" />
+                <div className="bg-green-600 text-white rounded-full p-2 flex items-center justify-center shadow-md animate-bounce">
+                  <ArrowDown className="h-4 w-4 text-white" />
+                </div>
+                <div className="w-0.5 h-6 border-l-2 border-dashed border-green-500/50" />
+              </div>
+
+              {/* Step 3 */}
+              <div className="group bg-white rounded-3xl p-6 flex flex-col justify-between shadow-xs hover:shadow-xl transition-all duration-500 hover:-translate-y-2 relative overflow-hidden">
+                <div className="absolute top-4 right-6 text-5xl font-extrabold text-green-700/5 select-none font-sans">03</div>
+                <div className="space-y-5">
+                  {/* Pulsing waypoint */}
+                  <div className="flex items-center gap-2.5">
+                    <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-750 font-bold shrink-0">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400/30 opacity-75"></span>
+                      <MapPin className="h-4.5 w-4.5 text-amber-600 relative z-10" />
+                    </div>
+                    <span className="text-[10px] font-extrabold uppercase text-amber-800 tracking-wider">⏱️ 10 Min Drive</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-green-800 transition-colors">Sector 25</h3>
+                    <p className="text-xs text-gray-500 leading-relaxed font-light">
+                      Keep driving straight until you cross Nilla Market and reach Sector 25.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-8 pt-4 border-t border-gray-100 text-xxs font-bold text-gray-400 flex items-center gap-2 group-hover:text-green-700 transition-colors">
+                  <Compass className="h-4 w-4 text-amber-500 group-hover:scale-110 transition-transform" />
+                  <span>Pass Nilla Market & Sector 25</span>
+                </div>
+              </div>
+
+              {/* Mobile Arrow Connector 3-4 */}
+              <div className="flex flex-col items-center justify-center sm:hidden -my-2 z-20 col-span-1">
+                <div className="w-0.5 h-6 border-l-2 border-dashed border-green-500/50" />
+                <div className="bg-green-600 text-white rounded-full p-2 flex items-center justify-center shadow-md animate-bounce">
+                  <ArrowDown className="h-4 w-4 text-white" />
+                </div>
+                <div className="w-0.5 h-6 border-l-2 border-dashed border-green-500/50" />
+              </div>
+
+              {/* Step 4 (Destination) */}
+              <div className="group bg-linear-to-br from-green-800 to-green-950 text-white rounded-3xl p-6 flex flex-col justify-between shadow-md hover:shadow-2xl hover:shadow-green-900/40 hover:-translate-y-2 transition-all duration-500 relative overflow-hidden">
+                <div className="absolute top-4 right-6 text-5xl font-extrabold text-white/5 select-none font-sans">04</div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
+                <div className="space-y-5">
+                  {/* Pulsing Destination radar */}
+                  <div className="flex items-center gap-2.5">
+                    <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-amber-400 text-green-950 font-bold shrink-0 border border-white/10 shadow-md">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-300 opacity-80"></span>
+                      <MapPin className="h-5 w-5 text-green-950 relative z-10" />
+                    </div>
+                    <span className="text-[10px] font-extrabold uppercase text-amber-300 tracking-wider">Destination</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-extrabold text-white">Green Garden City</h3>
+                    <p className="text-xs text-green-100/80 leading-relaxed font-light">
+                      Drive 5 mins from Sector 25 to reach the project entrance adjacent to Jhinga Park.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-8 pt-4 border-t border-green-800 text-xxs font-bold text-amber-300 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-amber-300 animate-pulse" />
+                  <span>Kaliganj, Gazipur (Purbachal)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      {/* What You Get Section (গ্রীন গার্ডেন সিটি থেকে যা পাচ্ছেন) */}
+      <section className="py-12 bg-linear-to-b from-green-900 via-green-950 to-green-950 text-white relative overflow-hidden">
+        {/* Subtle decorative background glow circles */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="container mx-auto px-4 md:px-8 relative z-10 max-w-7xl">
+          <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400/10 text-amber-300 text-xs font-bold uppercase tracking-widest border border-amber-400/20 shadow-sm animate-pulse">
+              <Sparkles className="h-3.5 w-3.5 text-amber-300" /> Exclusive Privileges
+            </span>
+            <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white font-serif leading-tight">
+              গ্রীন গার্ডেন সিটি থেকে যা পাচ্ছেন
+            </h2>
+            <p className="text-emerald-100/80 text-sm md:text-base font-light leading-relaxed font-sans">
+              Why Green Garden City is the most secure, high-value eco land project in Purbachal region.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Feature 1 */}
+            <div className="group bg-linear-to-br from-green-950/80 to-green-900/40 backdrop-blur-lg p-6 sm:p-8 rounded-3xl border border-white/10 hover:border-amber-400/35 transition-all duration-500 flex flex-col justify-between h-full relative overflow-hidden shadow-xl shadow-green-950/30 hover:shadow-2xl hover:shadow-amber-500/5 hover:-translate-y-2">
+              <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-transparent via-amber-400/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="space-y-5">
+                <div className="relative h-14 w-14 rounded-2xl bg-linear-to-tr from-amber-400 to-amber-300 text-green-950 flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.35)] group-hover:shadow-[0_8px_25px_rgba(245,158,11,0.5)] group-hover:scale-108 transition duration-500">
+                  <span className="absolute inset-0 rounded-2xl bg-amber-400/20 animate-ping pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <svg className="h-7 w-7 text-green-950 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <circle cx="10" cy="15" r="3" />
+                    <path d="M12 17.5L13.5 21l-1.5-1-1.5 1z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold font-serif text-white group-hover:text-amber-300 transition-colors leading-snug">এককালীন রেজিস্ট্রি</h3>
+                <p className="text-emerald-50/80 text-xs sm:text-sm font-light font-sans leading-relaxed">
+                  এককালীন মূল্য পরিশোধের সাথে সাথে সাফ-কবলা জমি রেজিস্ট্রি ও মিউটেশন সুবিধা।
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="group bg-linear-to-br from-green-950/80 to-green-900/40 backdrop-blur-lg p-6 sm:p-8 rounded-3xl border border-white/10 hover:border-amber-400/35 transition-all duration-500 flex flex-col justify-between h-full relative overflow-hidden shadow-xl shadow-green-950/30 hover:shadow-2xl hover:shadow-amber-500/5 hover:-translate-y-2">
+              <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-transparent via-amber-400/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="space-y-5">
+                <div className="relative h-14 w-14 rounded-2xl bg-linear-to-tr from-amber-400 to-amber-300 text-green-950 flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.35)] group-hover:shadow-[0_8px_25px_rgba(245,158,11,0.5)] group-hover:scale-108 transition duration-500">
+                  <span className="absolute inset-0 rounded-2xl bg-amber-400/20 animate-ping pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <svg className="h-7 w-7 text-green-950 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <circle cx="12" cy="11" r="3" />
+                    <path d="M12 11h.01" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold font-serif text-white group-hover:text-amber-300 transition-colors leading-snug">ডিজিটাল সিকিউরিটি</h3>
+                <p className="text-emerald-50/80 text-xs sm:text-sm font-light font-sans leading-relaxed">
+                  ২৪/৭ ডিজিটাল সিসিটিভি সার্ভেইল্যান্স, বাউন্ডারি ওয়াল এবং স্মার্ট সিকিউরিটি গেট।
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="group bg-linear-to-br from-green-950/80 to-green-900/40 backdrop-blur-lg p-6 sm:p-8 rounded-3xl border border-white/10 hover:border-amber-400/35 transition-all duration-500 flex flex-col justify-between h-full relative overflow-hidden shadow-xl shadow-green-950/30 hover:shadow-2xl hover:shadow-amber-500/5 hover:-translate-y-2">
+              <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-transparent via-amber-400/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="space-y-5">
+                <div className="relative h-14 w-14 rounded-2xl bg-linear-to-tr from-amber-400 to-amber-300 text-green-950 flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.35)] group-hover:shadow-[0_8px_25px_rgba(245,158,11,0.5)] group-hover:scale-108 transition duration-500">
+                  <span className="absolute inset-0 rounded-2xl bg-amber-400/20 animate-ping pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <svg className="h-7 w-7 text-green-950 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M12 3c-2.5 0-3.5 2.5-3.5 5h7c0-2.5-1-5-3.5-5z" />
+                    <path d="M12 3V1" />
+                    <rect x="6" y="8" width="12" height="12" rx="1" />
+                    <path d="M9 20v-4c0-0.8 0.7-1.5 1.5-1.5h3c0.8 0 1.5 0.7 1.5 1.5v4" />
+                    <path d="M3 20V8.5l1.5-1.5L6 8.5V20" />
+                    <path d="M18 20V8.5l1.5-1.5 1.5 1.5V20" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold font-serif text-white group-hover:text-amber-300 transition-colors leading-snug">কেন্দ্রীয় জামে মসজিদ</h3>
+                <p className="text-emerald-50/80 text-xs sm:text-sm font-light font-sans leading-relaxed">
+                  প্রকল্পের ভেতরে আধুনিক স্থাপত্যে পরিকল্পিত নিজস্ব কেন্দ্রীয় জামে মসজিদ।
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="group bg-linear-to-br from-green-950/80 to-green-900/40 backdrop-blur-lg p-6 sm:p-8 rounded-3xl border border-white/10 hover:border-amber-400/35 transition-all duration-500 flex flex-col justify-between h-full relative overflow-hidden shadow-xl shadow-green-950/30 hover:shadow-2xl hover:shadow-amber-500/5 hover:-translate-y-2">
+              <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-transparent via-amber-400/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="space-y-5">
+                <div className="relative h-14 w-14 rounded-2xl bg-linear-to-tr from-amber-400 to-amber-300 text-green-950 flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.35)] group-hover:shadow-[0_8px_25px_rgba(245,158,11,0.5)] group-hover:scale-108 transition duration-500">
+                  <span className="absolute inset-0 rounded-2xl bg-amber-400/20 animate-ping pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <svg className="h-7 w-7 text-green-950 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M2 19c1.5-0.8 3.5-0.8 5 0s3.5 0.8 5 0 3.5-0.8 5 0 3.5 0.8 5 0" />
+                    <path d="M2 16c1.5-0.8 3.5-0.8 5 0s3.5 0.8 5 0 3.5-0.8 5 0 3.5 0.8 5 0" />
+                    <path d="M12 4l3 5H9l3-5z" />
+                    <path d="M12 9v4" />
+                    <path d="M6 7l2 3H4l2-3z" />
+                    <path d="M6 10v3" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold font-serif text-white group-hover:text-amber-300 transition-colors leading-snug">গ্রীন ইকো পার্ক ও লেক</h3>
+                <p className="text-emerald-50/80 text-xs sm:text-sm font-light font-sans leading-relaxed">
+                  সবুজ পরিবেশ, নান্দনিক প্রাকৃতিক লেক, বসার জোন এবং ওয়াকিং ট্র্যাক।
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 5 */}
+            <div className="group bg-linear-to-br from-green-950/80 to-green-900/40 backdrop-blur-lg p-6 sm:p-8 rounded-3xl border border-white/10 hover:border-amber-400/35 transition-all duration-500 flex flex-col justify-between h-full relative overflow-hidden shadow-xl shadow-green-950/30 hover:shadow-2xl hover:shadow-amber-500/5 hover:-translate-y-2">
+              <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-transparent via-amber-400/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="space-y-5">
+                <div className="relative h-14 w-14 rounded-2xl bg-linear-to-tr from-amber-400 to-amber-300 text-green-950 flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.35)] group-hover:shadow-[0_8px_25px_rgba(245,158,11,0.5)] group-hover:scale-108 transition duration-500">
+                  <span className="absolute inset-0 rounded-2xl bg-amber-400/20 animate-ping pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <svg className="h-7 w-7 text-green-950 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M5 20L10 4h4l5 16" />
+                    <path d="M8 9h8" />
+                    <line x1="11" y1="9" x2="11" y2="15" />
+                    <line x1="13" y1="9" x2="13" y2="15" />
+                    <rect x="10.5" y="15" width="3" height="1" rx="0.5" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold font-serif text-white group-hover:text-amber-300 transition-colors leading-snug">শিশুদের খেলার মাঠ</h3>
+                <p className="text-emerald-50/80 text-xs sm:text-sm font-light font-sans leading-relaxed">
+                  নিরাপদ ও সুপরিসর প্লেইং গ্রাউন্ড, স্পোর্টস জোন এবং বাচ্চাদের পার্ক।
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 6 */}
+            <div className="group bg-linear-to-br from-green-950/80 to-green-900/40 backdrop-blur-lg p-6 sm:p-8 rounded-3xl border border-white/10 hover:border-amber-400/35 transition-all duration-500 flex flex-col justify-between h-full relative overflow-hidden shadow-xl shadow-green-950/30 hover:shadow-2xl hover:shadow-amber-500/5 hover:-translate-y-2">
+              <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-transparent via-amber-400/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="space-y-5">
+                <div className="relative h-14 w-14 rounded-2xl bg-linear-to-tr from-amber-400 to-amber-300 text-green-950 flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.35)] group-hover:shadow-[0_8px_25px_rgba(245,158,11,0.5)] group-hover:scale-108 transition duration-500">
+                  <span className="absolute inset-0 rounded-2xl bg-amber-400/20 animate-ping pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <svg className="h-7 w-7 text-green-950 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M4 22L9 2h6l5 22" />
+                    <line x1="12" y1="18" x2="12" y2="14" strokeDasharray="3 3" />
+                    <line x1="12" y1="10" x2="12" y2="6" strokeDasharray="3 3" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold font-serif text-white group-hover:text-amber-300 transition-colors leading-snug">৩০-৪০ ফুট প্রশস্ত রাস্তা</h3>
+                <p className="text-emerald-50/80 text-xs sm:text-sm font-light font-sans leading-relaxed">
+                  প্রতিটি প্লটের সামনে ৩০, ৩৫ ও ৪০ ফুট প্রশস্ত কার্পেটিং অভ্যন্তরীণ রাস্তা।
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 7 */}
+            <div className="group bg-linear-to-br from-green-950/80 to-green-900/40 backdrop-blur-lg p-6 sm:p-8 rounded-3xl border border-white/10 hover:border-amber-400/35 transition-all duration-500 flex flex-col justify-between h-full relative overflow-hidden shadow-xl shadow-green-950/30 hover:shadow-2xl hover:shadow-amber-500/5 hover:-translate-y-2">
+              <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-transparent via-amber-400/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="space-y-5">
+                <div className="relative h-14 w-14 rounded-2xl bg-linear-to-tr from-amber-400 to-amber-300 text-green-950 flex items-center justify-center shadow-[0_4px_20px_rgba(245,158,11,0.35)] group-hover:shadow-[0_8px_25px_rgba(245,158,11,0.5)] group-hover:scale-108 transition duration-500">
+                  <span className="absolute inset-0 rounded-2xl bg-amber-400/20 animate-ping pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <svg className="h-7 w-7 text-green-950 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <ellipse cx="12" cy="5" rx="9" ry="3" />
+                    <path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                    <path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold font-serif text-white group-hover:text-amber-300 transition-colors leading-snug">দীর্ঘমেয়াদি সহজ কিস্তি</h3>
+                <p className="text-emerald-50/80 text-xs sm:text-sm font-light font-sans leading-relaxed">
+                  ক্রেতাদের সুবিধার্থে দীর্ঘমেয়াদি সহজ সুদমুক্ত কিস্তিতে প্লট কেনার সুযোগ।
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 8 - Plot Sizes */}
+            <div className="group bg-linear-to-br from-green-950 to-green-900/60 p-6 sm:p-8 rounded-3xl border border-amber-400/30 shadow-2xl flex flex-col justify-between h-full hover:-translate-y-2 hover:shadow-amber-500/10 transition duration-500 relative overflow-hidden">
+              <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-amber-400/20 via-amber-400 to-amber-400/20" />
+              <div>
+                <span className="text-[10px] font-extrabold uppercase text-amber-300 tracking-wider">AVAILABLE PLOTS</span>
+                <h3 className="text-xl font-extrabold text-white mt-1 mb-3 font-serif leading-snug">৩, ৫ ও ১০ কাঠার প্লট</h3>
+                <p className="text-emerald-100/90 text-xs sm:text-sm leading-relaxed font-medium font-sans">
+                  আপনার বাজেট ও প্রয়োজন অনুযায়ী রেডি প্লট বুকিং চলছে।
+                </p>
+              </div>
+              <button
+                onClick={() => handleBookVisit("Plot Size Inquiry")}
+                className="mt-6 w-full bg-linear-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-400 text-green-950 font-extrabold text-xs py-3 rounded-xl transition duration-300 shadow-[0_4px_15px_rgba(245,158,11,0.35)] hover:shadow-[0_6px_20px_rgba(245,158,11,0.5)] cursor-pointer active:scale-97 uppercase tracking-wider"
+              >
+                বুকিং পরামর্শ চান &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      {/* Projects Showcase Section */}
+      <section id="plots" className="py-12 bg-gray-50 border-t border-gray-150">
+        <div className="container mx-auto px-4 md:px-8 text-center max-w-3xl mb-10 space-y-3">
+          <span className="text-xs font-bold text-green-700 uppercase tracking-widest bg-green-50 px-3.5 py-1.5 rounded-full border border-green-100 inline-block w-fit">
+            Master Blueprints
+          </span>
+          <h2 className="text-3xl md:text-5xl font-extrabold text-green-900 tracking-tight leading-tight font-serif">
+            Select Your Dream Plot
+          </h2>
+          <p className="text-gray-500 font-medium text-sm md:text-base leading-relaxed">
+            Choose from our premium residential communities, smart commercial hubs, and elite house gardens.
+          </p>
+        </div>
+
+        <div className="container mx-auto px-4 md:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl">
+          {finalThreeCards.map((project) => {
             const activeIdx = activeImageIndexes[project.id] || 0;
-            const currentImg = project.images && project.images.length > 0 ? project.images[activeIdx] : null;
+            const currentImg = project.images && project.images.length > 0 ? project.images[activeIdx] : "/hero_background.png";
             const hasMultipleImages = project.images && project.images.length > 1;
 
             const prevSlide = (e: React.MouseEvent) => {
@@ -615,66 +921,39 @@ export function HomeClient({ initialProjects, banner, banners }: HomeClientProps
             return (
               <div
                 key={project.id}
-                className="bg-white rounded-2xl overflow-hidden border border-gray-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group"
+                className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col h-full group"
               >
-                {/* Project Image Showcase with Carousel Controls */}
-                <div className="relative aspect-video w-full overflow-hidden bg-gray-100 group/slider">
-                  {/* Top Floating Badges */}
-                  <div className="absolute top-3.5 left-3.5 right-3.5 z-20 flex items-center justify-between pointer-events-none">
-                    {/* Status Badge */}
-                    <span className={`px-2.5 py-1 rounded-lg text-xxs font-extrabold uppercase tracking-wider shadow-sm border ${project.status === "Upcoming" ? "bg-amber-500 text-white border-amber-400" :
-                        project.status === "Delivered" ? "bg-green-600 text-white border-green-500" :
-                          "bg-blue-600 text-white border-blue-500"
-                      }`}>
-                      {project.status || "Ongoing"}
-                    </span>
+                {/* Image showcase wrapper */}
+                <div className="relative aspect-4/3 w-full overflow-hidden bg-gray-100 group/slider">
+                  <Link href={`/projects/${project.id}`} className="block w-full h-full">
+                    <img
+                      src={currentImg}
+                      alt={project.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </Link>
 
-                    {/* Category Badge */}
-                    {project.category && (
-                      <span className="px-2.5 py-1 rounded-lg text-xxs font-extrabold uppercase tracking-wider bg-black/60 text-white border border-white/20 backdrop-blur-md shadow-sm">
-                        {project.category}
-                      </span>
-                    )}
-                  </div>
-
-                  <a href={`/projects/${project.id}`} className="block w-full h-full">
-                    {currentImg ? (
-                      <img
-                        src={currentImg}
-                        alt={project.title}
-                        className="w-full h-full object-cover transition duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
-                        <ImageIcon className="h-12 w-12 text-gray-300 mb-2" />
-                        <span className="text-xs">No image uploaded</span>
-                      </div>
-                    )}
-                  </a>
-
-                  {/* Carousel Controls */}
+                  {/* Slide buttons */}
                   {hasMultipleImages && (
                     <>
                       <button
                         onClick={prevSlide}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-green-700 text-white rounded-full p-1.5 transition opacity-0 group-hover/slider:opacity-100 shadow-sm z-10"
+                        className="absolute left-2.5 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-green-700 text-white rounded-full p-1.5 transition opacity-0 group-hover/slider:opacity-100 shadow-xs z-10 cursor-pointer"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
                       </button>
                       <button
                         onClick={nextSlide}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-green-700 text-white rounded-full p-1.5 transition opacity-0 group-hover/slider:opacity-100 shadow-sm z-10"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-green-700 text-white rounded-full p-1.5 transition opacity-0 group-hover/slider:opacity-100 shadow-xs z-10 cursor-pointer"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
                       </button>
 
-                      {/* Dot indicators */}
-                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 bg-black/45 px-2.5 py-1 rounded-full backdrop-blur-xs z-10">
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 bg-black/45 px-2 py-0.5 rounded-full backdrop-blur-xs z-10">
                         {project.images.map((_, dotIdx) => (
                           <span
                             key={dotIdx}
-                            className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${dotIdx === activeIdx ? "bg-white scale-125" : "bg-white/50"
-                              }`}
+                            className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${dotIdx === activeIdx ? "bg-white scale-125" : "bg-white/50"}`}
                           />
                         ))}
                       </div>
@@ -682,367 +961,383 @@ export function HomeClient({ initialProjects, banner, banners }: HomeClientProps
                   )}
                 </div>
 
-                {/* Card Details */}
-                <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
+                {/* Card description details */}
+                <div className="p-6 flex-1 flex flex-col justify-between gap-6">
                   <div className="space-y-3">
-                    <a href={`/projects/${project.id}`} className="hover:text-green-800 transition block">
-                      <h3 className="text-xl font-bold text-gray-900 leading-tight hover:text-green-800">
+                    <Link href={`/projects/${project.id}`} className="hover:text-green-800 transition block">
+                      <h3 className="text-xl font-bold font-serif text-gray-900 leading-snug group-hover:text-green-800 transition-colors">
                         {project.title}
                       </h3>
-                    </a>
-
-                    {/* Rich HTML description snippet */}
+                    </Link>
                     <div
-                      className="text-sm text-gray-600 line-clamp-5 prose prose-sm prose-green max-w-none leading-relaxed mt-2"
+                      className="text-xs sm:text-sm text-gray-500 leading-relaxed font-light line-clamp-4 mt-2"
                       dangerouslySetInnerHTML={{ __html: project.description }}
                     />
                   </div>
 
                   <div className="flex gap-3 pt-2">
-                    <a
+                    <Link
                       href={`/projects/${project.id}`}
-                      className="flex-1 bg-white hover:bg-gray-50 text-green-800 border border-green-200 font-semibold py-2.5 rounded-lg shadow-xs transition text-center text-xs flex items-center justify-center"
+                      className="flex-1 bg-white hover:bg-gray-50 text-green-800 border border-green-200 font-semibold py-3 rounded-xl shadow-xs transition duration-300 text-center text-xs flex items-center justify-center cursor-pointer"
                     >
                       View Details
-                    </a>
-                    {project.status === "Delivered" || project.status === "Sold Out" ? (
-                      <button
-                        disabled
-                        className="flex-1 bg-red-50 text-red-700 border border-red-200 font-bold py-2.5 rounded-lg text-center text-xs cursor-not-allowed opacity-80"
-                      >
-                        SOLD OUT 🚫
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleBookVisit(project.title)}
-                        className="flex-1 bg-green-700 hover:bg-green-800 text-white font-semibold py-2.5 rounded-lg shadow-xs hover:shadow-md transition text-center text-xs"
-                      >
-                        Book Visit
-                      </button>
-                    )}
+                    </Link>
+                    <button
+                      onClick={() => handleBookVisit(project.title)}
+                      className="flex-1 bg-linear-to-r from-green-700 to-green-800 hover:from-green-800 hover:to-green-900 text-white font-bold py-3 rounded-xl shadow-md hover:shadow-lg transition duration-300 text-center text-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
+                    >
+                      <CalendarDays className="h-3.5 w-3.5 text-amber-300 group-hover:rotate-6 transition-transform" />
+                      <span>Book Site Visit</span>
+                    </button>
                   </div>
                 </div>
               </div>
             );
           })}
         </div>
-
-        {/* Empty State when no projects match filters */}
-        {sortedHomeProjects.length === 0 && (
-          <div className="p-12 border-2 border-dashed border-gray-200 rounded-2xl text-center space-y-4 max-w-md mx-auto my-8 bg-white shadow-xs">
-            <AlertCircle className="h-12 w-12 text-gray-400 mx-auto" />
-            <h3 className="text-lg font-bold text-gray-900">No matching projects found</h3>
-            <p className="text-gray-500 text-xs">
-              No development projects match your selected filters. Try resetting search or choosing another category or status.
-            </p>
-            <button
-              onClick={() => {
-                setHomeSearchQuery("");
-                setHomeMainCategory("All");
-                setHomeSubCategory("All");
-                setHomeStatusFilter("All");
-                setHomeSortBy("newest");
-              }}
-              className="bg-green-700 hover:bg-green-800 text-white font-semibold px-5 py-2 rounded-lg text-xs transition"
-            >
-              Reset All Filters
-            </button>
-          </div>
-        )}
       </section>
 
-      {/* What You Get Section (গ্রীন গার্ডেন সিটি থেকে যা পাচ্ছেন) */}
-      <section className="py-20 bg-gradient-to-b from-green-900 via-green-950 to-green-950 text-white relative overflow-hidden">
-        {/* Subtle decorative background glow circles */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="container mx-auto px-4 md:px-8 relative z-10 max-w-7xl">
-          <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold uppercase tracking-widest border border-emerald-500/30">
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" /> Exclusive Privileges
+
+      {/* Investment Comparison Section */}
+      <section className="py-16 bg-white border-t border-b border-gray-100">
+        <div className="container mx-auto px-4 md:px-8 max-w-4xl">
+          <div className="text-center space-y-4 mb-12">
+            <span className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold uppercase tracking-widest border border-amber-100">
+              Investment Comparison
             </span>
-            <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white">
-              গ্রীন গার্ডেন সিটি থেকে যা পাচ্ছেন
+            <h2 className="text-3xl md:text-5xl font-extrabold text-green-900 tracking-tight leading-tight font-serif">
+              একই টাকা (কোথায় বেশি লাভ)
             </h2>
-            <p className="text-gray-300 text-base md:text-lg font-light leading-relaxed">
-              Why Greenleaf Holdings Ltd. is the most secure, high-value eco land project in Purbachal region.
+            <p className="text-gray-500 font-medium text-sm md:text-base max-w-2xl mx-auto leading-relaxed font-sans">
+              অন্যান্য বিনিয়োগ মাধ্যমের সাথে তুলনা করে রিয়েল এস্টেট বা জমি ক্রয়ে আপনার দীর্ঘমেয়াদী বিনিয়োগের নিরাপত্তা ও সর্বোচ্চ রিটার্ন নিশ্চিত করুন।
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Feature 1 */}
-            <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/15 hover:border-emerald-400/50 hover:bg-white/15 transition group">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-400 flex items-center justify-center text-white font-bold text-xl shadow-lg mb-5 group-hover:scale-110 transition">
-                ✓
+          <div className="space-y-4">
+            {/* Land Card - Highlighted, premium look */}
+            <div className="relative p-5 sm:p-6 bg-linear-to-br from-green-950 to-green-900 text-white rounded-2xl border border-amber-400/40 shadow-md hover:shadow-2xl hover:-translate-y-1 transition duration-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group">
+              <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500"></span>
+              </span>
+
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-amber-400 flex items-center justify-center shadow-sm shrink-0 group-hover:scale-105 transition-transform duration-300">
+                  <Compass className="h-6 w-6 text-green-950" />
+                </div>
+                <div>
+                  <span className="inline-block px-2.5 py-0.5 rounded-md bg-amber-400 text-green-950 font-black text-[10px] uppercase tracking-wider mb-1">জমি (Land)</span>
+                  <p className="text-sm font-semibold text-white/95">ঝুঁকি: অত্যন্ত কম | রিটার্ন: আজীবন ক্রমবর্ধমান 📈</p>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">এককালীন রেজিস্ট্রি</h3>
-              <p className="text-gray-300 text-xs leading-relaxed font-light">
-                এককালীন মূল্য পরিশোধের সাথে সাথে সাফ-কবলা জমি রেজিস্ট্রি ও মিউটেশন সুবিধা।
-              </p>
+              <div className="shrink-0 self-stretch sm:self-auto flex items-center justify-end">
+                <span className="inline-block bg-amber-400 text-green-950 font-black text-xs px-4 py-2 rounded-xl shadow-xs border border-amber-500 animate-pulse whitespace-nowrap">
+                  সেরা লাভজনক ⭐
+                </span>
+              </div>
             </div>
 
-            {/* Feature 2 */}
-            <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/15 hover:border-emerald-400/50 hover:bg-white/15 transition group">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-400 flex items-center justify-center text-white shadow-lg mb-5 group-hover:scale-110 transition">
-                <ShieldCheck className="h-6 w-6 text-white" />
+            {/* Flat Card */}
+            <div className="p-5 sm:p-6 bg-white rounded-2xl border border-gray-200/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition duration-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 opacity-80 hover:opacity-100 group">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-red-50 text-red-700 flex items-center justify-center shrink-0 group-hover:bg-red-650 group-hover:text-white transition duration-300">
+                  <Home className="h-6 w-6" />
+                </div>
+                <div>
+                  <span className="inline-block px-2.5 py-0.5 rounded-md bg-red-50 text-red-700 font-extrabold text-[10px] uppercase tracking-wider mb-1">ফ্ল্যাট (Flat)</span>
+                  <p className="text-sm font-medium text-gray-700">ঝুঁকি: বেশি | রিটার্ন: সীমিত</p>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">ডিজিটাল সিকিউরিটি</h3>
-              <p className="text-gray-300 text-xs leading-relaxed font-light">
-                ২৪/৭ ডিজিটাল সিসিটিভি সার্ভেইল্যান্স, বাউন্ডারি ওয়াল এবং স্মার্ট সিকিউরিটি গেট।
-              </p>
+              <div className="shrink-0 self-stretch sm:self-auto flex items-center justify-end">
+                <span className="text-xs font-semibold text-gray-500 bg-gray-50 border border-gray-200 px-3.5 py-1.5 rounded-xl whitespace-nowrap">
+                  পুরানো হলে দাম কমে যায়
+                </span>
+              </div>
             </div>
 
-            {/* Feature 3 */}
-            <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/15 hover:border-emerald-400/50 hover:bg-white/15 transition group">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-400 flex items-center justify-center text-white shadow-lg mb-5 group-hover:scale-110 transition">
-                <Landmark className="h-6 w-6 text-white" />
+            {/* Gold Card */}
+            <div className="p-5 sm:p-6 bg-white rounded-2xl border border-gray-200/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition duration-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 opacity-80 hover:opacity-100 group">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 group-hover:bg-amber-500 group-hover:text-white transition duration-300">
+                  <Sparkles className="h-6 w-6" />
+                </div>
+                <div>
+                  <span className="inline-block px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-700 font-extrabold text-[10px] uppercase tracking-wider mb-1">স্বর্ণ (Gold)</span>
+                  <p className="text-sm font-medium text-gray-700">ঝুঁকি: মাঝারি | রিটার্ন: মাঝারি</p>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">কেন্দ্রীয় জামে মসজিদ</h3>
-              <p className="text-gray-300 text-xs leading-relaxed font-light">
-                প্রকল্পের ভেতরে আধুনিক স্থাপত্যে পরিকল্পিত নিজস্ব কেন্দ্রীয় জামে মসজিদ।
-              </p>
+              <div className="shrink-0 self-stretch sm:self-auto flex items-center justify-end">
+                <span className="text-xs font-semibold text-gray-500 bg-gray-50 border border-gray-200 px-3.5 py-1.5 rounded-xl whitespace-nowrap">
+                  সীমিত বা বার্ষিক রিটার্ন
+                </span>
+              </div>
             </div>
 
-            {/* Feature 4 */}
-            <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/15 hover:border-emerald-400/50 hover:bg-white/15 transition group">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-400 flex items-center justify-center text-white shadow-lg mb-5 group-hover:scale-110 transition">
-                <Trees className="h-6 w-6 text-white" />
+            {/* Bank Card */}
+            <div className="p-5 sm:p-6 bg-white rounded-2xl border border-gray-200/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition duration-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 opacity-80 hover:opacity-100 group">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition duration-300">
+                  <Landmark className="h-6 w-6" />
+                </div>
+                <div>
+                  <span className="inline-block px-2.5 py-0.5 rounded-md bg-blue-50 text-blue-700 font-extrabold text-[10px] uppercase tracking-wider mb-1">ব্যাংক (Bank)</span>
+                  <p className="text-sm font-medium text-gray-700">ঝুঁকি: কম | রিটার্ন: খুব কম</p>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">গ্রীন ইকো পার্ক ও লেক</h3>
-              <p className="text-gray-300 text-xs leading-relaxed font-light">
-                সবুজ পরিবেশ, নান্দনিক প্রাকৃতিক লেক, বসার জোন এবং ওয়াকিং ট্র্যাক।
-              </p>
+              <div className="shrink-0 self-stretch sm:self-auto flex items-center justify-end">
+                <span className="text-xs font-semibold text-red-600 bg-red-50/60 border border-red-100 px-3.5 py-1.5 rounded-xl whitespace-nowrap">
+                  মুদ্রাস্ফীতির কারণে আর্থিক ক্ষতি
+                </span>
+              </div>
             </div>
+          </div>
 
-            {/* Feature 5 */}
-            <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/15 hover:border-emerald-400/50 hover:bg-white/15 transition group">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-400 flex items-center justify-center text-white shadow-lg mb-5 group-hover:scale-110 transition">
-                <Waves className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">শিশুদের খেলার মাঠ</h3>
-              <p className="text-gray-300 text-xs leading-relaxed font-light">
-                নিরাপদ ও সুপরিসর প্লেইং গ্রাউন্ড, স্পোর্টস জোন এবং বাচ্চাদের পার্ক।
-              </p>
-            </div>
-
-            {/* Feature 6 */}
-            <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/15 hover:border-emerald-400/50 hover:bg-white/15 transition group">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-400 flex items-center justify-center text-white shadow-lg mb-5 group-hover:scale-110 transition">
-                <Road className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">৩০-৪০ ফুট প্রশস্ত রাস্তা</h3>
-              <p className="text-gray-300 text-xs leading-relaxed font-light">
-                প্রতিটি প্লটের সামনে ৩০, ৩৫ ও ৪০ ফুট প্রশস্ত কার্পেটিং অভ্যন্তরীণ রাস্তা।
-              </p>
-            </div>
-
-            {/* Feature 7 */}
-            <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/15 hover:border-emerald-400/50 hover:bg-white/15 transition group">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-400 flex items-center justify-center text-white shadow-lg mb-5 group-hover:scale-110 transition">
-                <Zap className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">দীর্ঘমেয়াদি সহজ কিস্তি</h3>
-              <p className="text-gray-300 text-xs leading-relaxed font-light">
-                ক্রেতাদের সুবিধার্থে দীর্ঘমেয়াদি সহজ সুদমুক্ত কিস্তিতে প্লট কেনার সুযোগ।
-              </p>
-            </div>
-
-            {/* Feature 8 - Plot Sizes */}
-            <div className="bg-gradient-to-tr from-emerald-600 to-green-700 p-6 rounded-2xl border border-emerald-400/40 shadow-xl flex flex-col justify-between">
-              <div>
-                <span className="text-xs font-extrabold uppercase text-amber-300 tracking-wider">AVAILABLE PLOTS</span>
-                <h3 className="text-xl font-extrabold text-white mt-1 mb-3">৩, ৫ ও ১০ কাঠার প্লট</h3>
-                <p className="text-white/90 text-xs leading-relaxed font-medium">
-                  আপনার বাজেট ও প্রয়োজন অনুযায়ী রেডি প্লট বুকিং চলছে।
-                </p>
-              </div>
-              <button
-                onClick={() => handleBookVisit("Plot Size Inquiry")}
-                className="mt-4 w-full bg-white hover:bg-amber-300 text-green-950 font-bold text-xs py-3 rounded-xl transition shadow-md"
-              >
-                বুকিং পরামর্শ চান &rarr;
-              </button>
-            </div>
+          <div className="pt-10 flex justify-center">
+            <button
+              onClick={() => handleBookVisit("Location & Route Visit")}
+              className="group relative overflow-hidden animate-shimmer animate-glow-ring bg-green-700 hover:bg-green-800 text-white font-extrabold py-4 px-10 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2.5 text-sm sm:text-base cursor-pointer shadow-lg active:scale-97 hover:scale-102 hover:shadow-green-900/35"
+            >
+              <CalendarDays className="h-5 w-5 text-amber-300 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shrink-0" />
+              <span>ফ্রি সাইট ভিজিট বুক করুন</span>
+            </button>
           </div>
         </div>
       </section>
 
       {/* Detailed Location & Step-by-step Route Breakdown */}
       <section id="location" className="py-20 bg-white border-t border-gray-100">
-        <div className="container mx-auto px-4 md:px-8 max-w-7xl space-y-16">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <span className="text-xs font-extrabold text-green-700 uppercase tracking-widest bg-green-50 px-3 py-1 rounded-full border border-green-200">
-              COMMUNICATION & ROUTE
-            </span>
-            <h2 className="text-3xl md:text-5xl font-extrabold text-green-900 tracking-tight">
-              সহজ যাতায়াত ও কৌশলগত অবস্থান
-            </h2>
-            <p className="text-gray-600 text-base md:text-lg leading-relaxed font-light">
-              কুড়িল ফ্লাইওভার (৩০০ ফুট পূর্বাচল এক্সপ্রেসওয়ে) থেকে খুব সহজেই গ্রীন গার্ডেন সিটিতে পৌঁছানোর রুটম্যাপ।
-            </p>
-          </div>
-
-          {/* Route Step-by-Step Distance Timeline */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
-            {/* Step 1 */}
-            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 shadow-xs relative flex flex-col justify-between group hover:border-green-500 hover:shadow-md transition">
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold">
-                  START POINT
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">Kuril Flyover</h3>
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  কুড়িল ৩০০ ফুট পূর্বাচল এক্সপ্রেসওয়ে থেকে যাত্রা শুরু।
-                </p>
+        <div className="container mx-auto px-4 md:px-8 max-w-7xl">
+          <div className="overflow-hidden rounded-3xl border border-gray-200 shadow-md bg-white flex flex-col">
+            <div className="bg-green-950 text-white px-5 py-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-bold min-w-0">
+                <MapPin className="h-4.5 w-4.5 text-amber-400 shrink-0" />
+                <span className="truncate">Real Map: Green Garden City, Kaliganj, Gazipur</span>
               </div>
-              <div className="mt-6 pt-4 border-t border-gray-200 text-xs font-semibold text-gray-500 flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-blue-600" />
-                <span>300 Ft Expressway</span>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 shadow-xs relative flex flex-col justify-between group hover:border-green-500 hover:shadow-md transition">
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-bold">
-                  ⏱️ 20 MIN DRIVE
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">Purbachal Club</h3>
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  ৩০০ ফুট সড়ক হয়ে ২০ মিনিটে পূর্বাচল ক্লাব ও সাধারণ বীমা পার হয়ে অগ্রসর হন।
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-gray-200 text-xs font-semibold text-gray-500 flex items-center gap-2">
-                <Road className="h-4 w-4 text-green-600" />
-                <span>Pass Purbachal Sports City</span>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 shadow-xs relative flex flex-col justify-between group hover:border-green-500 hover:shadow-md transition">
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">
-                  ⏱️ 10 MIN DRIVE
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">Sector 25</h3>
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  পূর্বাচল ক্লাব থেকে ১০ মিনিটে নীলা মার্কেট ও সেক্টর ২৫ পার হোন।
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-gray-200 text-xs font-semibold text-gray-500 flex items-center gap-2">
-                <Compass className="h-4 w-4 text-amber-600" />
-                <span>Pass Nilla Market & Sector 25</span>
-              </div>
-            </div>
-
-            {/* Step 4 */}
-            <div className="bg-gradient-to-br from-green-800 to-green-900 text-white rounded-2xl p-6 border border-green-700 shadow-lg relative flex flex-col justify-between">
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400 text-green-950 text-xs font-extrabold">
-                  🎯 5 MIN DRIVE ➔ DESTINATION
-                </div>
-                <h3 className="text-xl font-extrabold text-white">Greenleaf Holdings Ltd.</h3>
-                <p className="text-xs text-gray-200 leading-relaxed font-light">
-                  সেক্টর ২৫ থেকে মাত্র ৫ মিনিটে পৌঁছে যান আপনার স্বপ্নের গ্রীন গার্ডেন সিটিতে (ঝিংগা পার্ক সংলগ্ন)।
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-green-700/50 text-xs font-bold text-amber-300 flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-amber-300" />
-                <span>Kaliganj, Gazipur (Purbachal)</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Real Google Location Map & Key Investment Comparison Highlights */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-gray-50 p-6 md:p-8 rounded-3xl border border-gray-200">
-            <div className="lg:col-span-7">
-              <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-md bg-white flex flex-col">
-                <div className="bg-green-950 text-white px-4 py-3 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 text-xs sm:text-sm font-bold min-w-0">
-                    <MapPin className="h-4 w-4 text-amber-400 shrink-0" />
-                    <span className="truncate">Real Map: Greenleaf Holdings Ltd., Kaliganj, Gazipur</span>
-                  </div>
-                  <a
-                    href="https://maps.google.com/?q=Kaliganj,Gazipur,Bangladesh"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xxs font-extrabold bg-amber-400 text-green-950 px-3 py-1 rounded-lg hover:bg-amber-300 transition whitespace-nowrap shrink-0"
-                  >
-                    Open Google Maps ↗
-                  </a>
-                </div>
-
-                <div className="relative w-full h-[360px] sm:h-[420px]">
-                  <iframe
-                    title="Greenleaf Holdings Ltd. Real Location Map"
-                    src="https://maps.google.com/maps?q=Kaliganj,%20Gazipur,%20Bangladesh&t=&z=14&ie=UTF8&iwloc=&output=embed"
-                    className="w-full h-full border-0"
-                    allowFullScreen={true}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  ></iframe>
-                </div>
-              </div>
-            </div>
-
-            <div className="lg:col-span-5 space-y-6">
-              <h3 className="text-2xl font-bold text-green-900 border-b border-green-900/10 pb-4">
-                একই টাকা (কোথায় বেশি লাভ)
-              </h3>
-
-              <div className="space-y-3">
-                <div className="p-3.5 bg-white rounded-xl border border-gray-200 shadow-xs flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="px-2.5 py-1 rounded-lg bg-green-100 text-green-800 font-extrabold text-xs">জমি (Land)</span>
-                    <span className="text-xs text-gray-600 font-medium">ঝুঁকি: কম | রিটার্ন: উচ্চ 📈</span>
-                  </div>
-                  <span className="text-xs font-bold text-green-700">সেরা লাভজনক</span>
-                </div>
-
-                <div className="p-3.5 bg-white rounded-xl border border-gray-200 shadow-xs flex items-center justify-between opacity-80">
-                  <div className="flex items-center gap-3">
-                    <span className="px-2.5 py-1 rounded-lg bg-red-100 text-red-800 font-extrabold text-xs">ফ্ল্যাট (Flat)</span>
-                    <span className="text-xs text-gray-600 font-medium">ঝুঁকি: বেশি | রিটার্ন: কম</span>
-                  </div>
-                  <span className="text-xs text-gray-500">পুরানো হলে দাম কমে</span>
-                </div>
-
-                <div className="p-3.5 bg-white rounded-xl border border-gray-200 shadow-xs flex items-center justify-between opacity-80">
-                  <div className="flex items-center gap-3">
-                    <span className="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 font-extrabold text-xs">স্বর্ণ (Gold)</span>
-                    <span className="text-xs text-gray-600 font-medium">ঝুঁকি: মাঝারি | রিটার্ন: মাঝারি</span>
-                  </div>
-                  <span className="text-xs text-gray-500">সীমিত রিটার্ন</span>
-                </div>
-
-                <div className="p-3.5 bg-white rounded-xl border border-gray-200 shadow-xs flex items-center justify-between opacity-80">
-                  <div className="flex items-center gap-3">
-                    <span className="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 font-extrabold text-xs">ব্যাংক (Bank)</span>
-                    <span className="text-xs text-gray-600 font-medium">ঝুঁকি: কম | রিটার্ন: খুব কম</span>
-                  </div>
-                  <span className="text-xs text-gray-500">মুদ্রাস্ফীতিতে ক্ষতি</span>
-                </div>
-              </div>
-
-              <button
-                onClick={() => handleBookVisit("Location & Route Visit")}
-                className="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-green-900/30 transition flex items-center justify-center gap-2"
+              <a
+                href="https://maps.google.com/?q=Kaliganj,Gazipur,Bangladesh"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-extrabold bg-amber-400 text-green-950 px-4 py-2 rounded-xl hover:bg-amber-300 transition whitespace-nowrap shrink-0"
               >
-                <CalendarDays className="h-5 w-5 text-amber-300" />
-                ফ্রি সাইট ভিজিট বুক করুন
-              </button>
+                Open Google Maps ↗
+              </a>
+            </div>
+
+            <div className="relative w-full h-100 sm:h-125">
+              <iframe
+                title="Green Garden City Real Location Map"
+                src="https://maps.google.com/maps?q=Kaliganj,%20Gazipur,%20Bangladesh&t=&z=14&ie=UTF8&iwloc=&output=embed"
+                className="w-full h-full border-0"
+                allowFullScreen={true}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Customer Reviews / Testimonials Section */}
+      <section className="py-16 bg-linear-to-b from-gray-50 to-white border-t border-gray-100 overflow-hidden">
+        <div className="container mx-auto px-4 md:px-8 max-w-6xl">
+          <div className="text-center space-y-4 mb-12">
+            <span className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold uppercase tracking-widest border border-amber-100">
+              Testimonials
+            </span>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-green-900 tracking-tight leading-tight font-serif">
+              আমাদের সম্মানিত গ্রাহকদের মতামত
+            </h2>
+            <p className="text-gray-500 font-medium text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+              যারা ইতিমধ্যে গ্রীন গার্ডেন সিটিতে তাদের স্বপ্নের প্লট বেছে নিয়েছেন, তাদের অভিজ্ঞতা জানুন।
+            </p>
+          </div>
+
+          {/* Swiper Carousel for Testimonials */}
+          <div className="testimonial-swiper-wrapper relative">
+            <Swiper
+              modules={[Autoplay, Pagination]}
+              spaceBetween={24}
+              slidesPerView={1}
+              loop={displayReviews.length > 3}
+              autoplay={{
+                delay: 4000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+              }}
+              pagination={{
+                clickable: true,
+                dynamicBullets: true,
+              }}
+              navigation={true}
+              breakpoints={{
+                640: { slidesPerView: 1, spaceBetween: 20 },
+                768: { slidesPerView: 2, spaceBetween: 24 },
+                1024: { slidesPerView: 3, spaceBetween: 24 },
+              }}
+              className="testimonial-swiper pb-14!"
+            >
+              {displayReviews.map((review) => (
+                <SwiperSlide key={review.id} className="h-auto!">
+                  <div
+                    className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between gap-5 group h-full border border-gray-100/80"
+                  >
+                    {/* Stars */}
+                    <div className="flex items-center gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <svg key={i} className={`h-4.5 w-4.5 ${i < review.rating ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
+                    </div>
+
+                    {/* Comment */}
+                    <p className="text-sm text-gray-600 leading-relaxed font-normal flex-1">
+                      &ldquo;{review.comment}&rdquo;
+                    </p>
+
+                    {/* Reviewer info */}
+                    <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
+                      <div className="h-10 w-10 rounded-full bg-linear-to-br from-green-700 to-green-900 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
+                        {review.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">{review.name}</p>
+                        <p className="text-xs text-gray-400 font-medium">{review.role}</p>
+                      </div>
+                    </div>
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
+
+          <div className="pt-10 flex justify-center">
+            <button
+              onClick={() => setIsReviewModalOpen(true)}
+              className="group bg-green-700 hover:bg-green-800 text-white font-bold py-3.5 px-8 rounded-xl transition-all duration-300 flex items-center justify-center gap-2.5 text-sm cursor-pointer shadow-lg hover:shadow-green-900/30 active:scale-97"
+            >
+              <Sparkles className="h-4.5 w-4.5 text-amber-300 group-hover:rotate-12 transition-transform duration-300" />
+              <span>আপনার মতামত দিন</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Write a Review Modal */}
+      {isReviewModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div className="bg-linear-to-r from-green-800 to-green-900 text-white px-6 py-5 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Sparkles className="h-5 w-5 text-amber-300" />
+                <h3 className="text-lg font-bold">আপনার মতামত দিন</h3>
+              </div>
+              <button onClick={() => { setIsReviewModalOpen(false); setReviewSubmitted(false); }} className="text-white/70 hover:text-white transition p-1 cursor-pointer">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {reviewSubmitted ? (
+              <div className="p-10 text-center space-y-4">
+                <div className="h-16 w-16 bg-green-50 rounded-full flex items-center justify-center mx-auto">
+                  <Check className="h-8 w-8 text-green-700" />
+                </div>
+                <h4 className="text-xl font-bold text-green-900">ধন্যবাদ!</h4>
+                <p className="text-sm text-gray-500">আপনার মতামত সফলভাবে জমা হয়েছে। অ্যাডমিন অনুমোদনের পর এটি প্রদর্শিত হবে।</p>
+              </div>
+            ) : (
+              <form onSubmit={handleReviewSubmit} className="p-6 space-y-5">
+                {/* Star Rating */}
+                <div className="flex flex-col items-center gap-2">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">রেটিং দিন</label>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setReviewRating(i + 1)}
+                        onMouseEnter={() => setReviewHoverRating(i + 1)}
+                        onMouseLeave={() => setReviewHoverRating(0)}
+                        className="p-0.5 cursor-pointer transition-transform hover:scale-125"
+                      >
+                        <svg className={`h-8 w-8 transition-colors ${(reviewHoverRating || reviewRating) > i ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">আপনার নাম *</label>
+                    <input
+                      type="text"
+                      required
+                      value={reviewName}
+                      onChange={(e) => setReviewName(e.target.value)}
+                      className="rounded-xl border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition py-2.5 px-3.5 text-sm font-medium text-gray-700"
+                      placeholder="যেমনঃ মো: রফিকুল ইসলাম"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">পেশা / পরিচয়</label>
+                    <input
+                      type="text"
+                      value={reviewRole}
+                      onChange={(e) => setReviewRole(e.target.value)}
+                      className="rounded-xl border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition py-2.5 px-3.5 text-sm font-medium text-gray-700"
+                      placeholder="যেমনঃ ব্যবসায়ী"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">আপনার মতামত *</label>
+                  <textarea
+                    required
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    rows={4}
+                    className="rounded-xl border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition py-2.5 px-3.5 text-sm font-medium text-gray-700 resize-none"
+                    placeholder="গ্রীন গার্ডেন সিটি সম্পর্কে আপনার অভিজ্ঞতা এবং মতামত লিখুন..."
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmittingReview}
+                  className="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 shadow-md"
+                >
+                  {isSubmittingReview ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                      জমা হচ্ছে...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Check className="h-4.5 w-4.5" />
+                      মতামত জমা দিন
+                    </span>
+                  )}
+                </button>
+
+                <p className="text-center text-xs text-gray-400">
+                  আপনার মতামত অ্যাডমিন অনুমোদনের পরে ওয়েবসাইটে প্রদর্শিত হবে।
+                </p>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="bg-green-950 text-gray-300 pt-16 pb-8 border-t border-green-900">
         <div className="container mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Brand Info */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white tracking-wide">Greenleaf Holdings Ltd.</h3>
+            <h3 className="text-xl font-bold text-white tracking-wide">Green Garden City</h3>
             <p className="text-sm text-green-100/70 font-light leading-relaxed">
               Providing beautiful, eco-friendly real-estate solutions for high-end urban dwelling. Experience the peace of nature with state-of-the-art facilities.
             </p>
@@ -1088,7 +1383,7 @@ export function HomeClient({ initialProjects, banner, banners }: HomeClientProps
               </li>
               <li className="flex items-center gap-3">
                 <MapPin className="h-4 w-4 text-amber-400 shrink-0" />
-                <span>Greenleaf Holdings Ltd., Kaliganj, Gazipur</span>
+                <span>Green Garden City, Kaliganj, Gazipur</span>
               </li>
             </ul>
           </div>
@@ -1096,9 +1391,58 @@ export function HomeClient({ initialProjects, banner, banners }: HomeClientProps
 
         {/* Copyright */}
         <div className="container mx-auto px-4 md:px-8 border-t border-green-900/60 pt-8 text-center text-xs text-green-100/40">
-          <p>&copy; {new Date().getFullYear()} Greenleaf Holdings Ltd. Ltd. All rights reserved. Designed for elite living.</p>
+          <p>&copy; {new Date().getFullYear()} Green Garden City Ltd. All rights reserved. Designed for elite living.</p>
         </div>
       </footer>
+
+      {/* Lightbox Modal */}
+      {isLightboxOpen && lightboxIndex !== null && galleryItems && galleryItems[lightboxIndex] && (
+        <div className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <button
+            onClick={() => setIsLightboxOpen(false)}
+            className="absolute top-6 right-6 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2.5 rounded-full transition z-55 cursor-pointer animate-in fade-in zoom-in duration-300"
+            title="Close"
+          >
+            <X className="h-6 w-6" />
+          </button>
+
+          <div className="relative w-full max-w-5xl h-full flex flex-col items-center justify-center">
+            {/* Navigation buttons */}
+            <button
+              onClick={() => setLightboxIndex(prev => (prev! - 1 + galleryItems.length) % galleryItems.length)}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-3 rounded-full transition z-55 cursor-pointer"
+              title="Previous"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+
+            <button
+              onClick={() => setLightboxIndex(prev => (prev! + 1) % galleryItems.length)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-3 rounded-full transition z-55 cursor-pointer"
+              title="Next"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+
+            {/* Large Image */}
+            <div className="relative max-h-[80vh] max-w-full flex items-center justify-center">
+              <img
+                src={galleryItems[lightboxIndex].imageUrl}
+                alt={galleryItems[lightboxIndex].title}
+                className="max-h-[75vh] max-w-full object-contain rounded-xl shadow-2xl border border-white/10"
+              />
+            </div>
+
+            {/* Image Title / Counter */}
+            <div className="text-center mt-6 space-y-1">
+              <h4 className="text-white font-bold text-lg">{galleryItems[lightboxIndex].title}</h4>
+              <p className="text-white/50 text-xs font-semibold">
+                {lightboxIndex + 1} of {galleryItems.length}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Booking Scheduling Modal */}
       <BookingModal

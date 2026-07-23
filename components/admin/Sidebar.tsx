@@ -10,7 +10,10 @@ import {
   MessageSquare,
   LogOut,
   UserCircle,
-  Layout
+  Layout,
+  Info,
+  Image,
+  Star
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -20,10 +23,13 @@ export function Sidebar() {
   const navItems = [
     { name: "Projects", href: "/admin/projects", icon: Folder },
     { name: "Hero Banner", href: "/admin/banner", icon: Layout },
+    { name: "About Section", href: "/admin/about", icon: Info },
+    { name: "Photo Gallery", href: "/admin/gallery", icon: Image },
     { name: "Inquiries", href: "/admin/bookings", icon: MessageSquare },
     { name: "Blog Posts", href: "/admin/blog", icon: BookOpen },
     { name: "Brochures", href: "/admin/brochures", icon: FileText },
     { name: "Team Members", href: "/admin/team", icon: Users },
+    { name: "Customer Reviews", href: "/admin/reviews", icon: Star },
   ];
 
   if (pathname === "/admin/login") {
@@ -33,7 +39,7 @@ export function Sidebar() {
   return (
     <aside className="w-[280px] bg-white border-r border-gray-200 flex flex-col sticky top-0 h-screen shrink-0">
       <div className="p-6 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-green-800 tracking-tight">Greenleaf Holdings Ltd.</h1>
+        <h1 className="text-xl font-bold text-green-800 tracking-tight">Green Garden City</h1>
         <p className="text-xs font-semibold text-gray-400 mt-1 uppercase tracking-wider">Admin Portal</p>
       </div>
 
@@ -45,8 +51,8 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all ${isActive
-                  ? "bg-green-50 text-green-800 font-bold border-l-4 border-green-700 shadow-sm"
-                  : "text-gray-600 hover:bg-green-50/50 hover:text-green-800"
+                ? "bg-green-50 text-green-800 font-bold border-l-4 border-green-700 shadow-sm"
+                : "text-gray-600 hover:bg-green-50/50 hover:text-green-800"
                 }`}
             >
               <item.icon className={`h-5 w-5 ${isActive ? "text-green-700" : "text-gray-400"}`} />

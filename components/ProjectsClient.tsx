@@ -168,7 +168,7 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
             Our Master Projects
           </h1>
           <p className="text-gray-600 text-lg md:text-xl font-light leading-relaxed">
-            Explore our curated residential masterplans, commercial spaces, and premium villa architectures in Greenleaf Holdings Ltd..
+            Explore our curated residential masterplans, commercial spaces, and premium villa architectures in Green Garden City.
           </p>
         </header>
 
@@ -181,11 +181,10 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
                 setActiveMainCategory("All");
                 setActiveSubCategory("All");
               }}
-              className={`py-2.5 px-1 sm:px-4 text-xs sm:text-sm font-extrabold rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1 text-center ${
-                activeMainCategory === "All"
+              className={`py-2.5 px-1 sm:px-4 text-xs sm:text-sm font-extrabold rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1 text-center ${activeMainCategory === "All"
                   ? "bg-white text-green-800 shadow-sm border border-gray-200/80"
                   : "text-gray-600 hover:text-green-700"
-              }`}
+                }`}
             >
               <Compass className="h-4 w-4 shrink-0 text-green-700 hidden sm:block" />
               <span>All ({initialProjects.length})</span>
@@ -195,11 +194,10 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
                 setActiveMainCategory("Land");
                 setActiveSubCategory("All");
               }}
-              className={`py-2.5 px-1 sm:px-4 text-xs sm:text-sm font-extrabold rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1 text-center ${
-                activeMainCategory === "Land"
+              className={`py-2.5 px-1 sm:px-4 text-xs sm:text-sm font-extrabold rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1 text-center ${activeMainCategory === "Land"
                   ? "bg-white text-green-800 shadow-sm border border-gray-200/80"
                   : "text-gray-600 hover:text-green-700"
-              }`}
+                }`}
             >
               <Compass className="h-4 w-4 shrink-0 text-green-700 hidden sm:block" />
               <span>Land</span>
@@ -208,11 +206,10 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
               onClick={() => {
                 setActiveMainCategory("Apartment");
               }}
-              className={`py-2.5 px-1 sm:px-4 text-xs sm:text-sm font-extrabold rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1 text-center ${
-                activeMainCategory === "Apartment"
+              className={`py-2.5 px-1 sm:px-4 text-xs sm:text-sm font-extrabold rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1 text-center ${activeMainCategory === "Apartment"
                   ? "bg-white text-green-800 shadow-sm border border-gray-200/80"
                   : "text-gray-600 hover:text-green-700"
-              }`}
+                }`}
             >
               <Home className="h-4 w-4 shrink-0 text-green-700 hidden sm:block" />
               <span>Apartments</span>
@@ -228,11 +225,10 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
                   <button
                     key={subTab}
                     onClick={() => setActiveSubCategory(subTab)}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition ${
-                      isActive
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition ${isActive
                         ? "bg-green-700 border-green-800 text-white shadow-xs"
                         : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-800"
-                    }`}
+                      }`}
                   >
                     {subTab === "All" ? "All Phases" : subTab}
                   </button>
@@ -347,8 +343,8 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
                   <div className="absolute top-3.5 left-3.5 right-3.5 z-20 flex items-center justify-between pointer-events-none">
                     {/* Status Badge */}
                     <span className={`px-2.5 py-1 rounded-lg text-xxs font-extrabold uppercase tracking-wider shadow-sm border ${project.status === "Upcoming" ? "bg-amber-500 text-white border-amber-400" :
-                        project.status === "Delivered" ? "bg-green-600 text-white border-green-500" :
-                          "bg-blue-600 text-white border-blue-500"
+                      project.status === "Delivered" ? "bg-green-600 text-white border-green-500" :
+                        "bg-blue-600 text-white border-blue-500"
                       }`}>
                       {project.status || "Ongoing"}
                     </span>
@@ -472,14 +468,14 @@ export function ProjectsClient({ initialProjects }: ProjectsClientProps) {
       {/* Footer */}
       <footer className="bg-green-950 text-gray-300 pt-16 pb-8 border-t border-green-900">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl grid grid-cols-1 md:grid-cols-3 items-center gap-8 mb-12">
-          <div className="text-xl font-bold text-white tracking-wide">Greenleaf Holdings Ltd.</div>
+          <div className="text-xl font-bold text-white tracking-wide">Green Garden City</div>
           <div className="flex flex-wrap justify-center gap-6 text-sm">
             <a href="#" className="hover:text-amber-400 transition">Privacy Policy</a>
             <a href="#" className="hover:text-amber-400 transition">Terms of Service</a>
             <a href="/contact" className="hover:text-amber-400 transition">Contact Us</a>
           </div>
           <div className="text-sm text-center md:text-right text-green-100/50">
-            &copy; {new Date().getFullYear()} Greenleaf Holdings Ltd.. All rights reserved.
+            &copy; {new Date().getFullYear()} Green Garden City. All rights reserved.
           </div>
         </div>
       </footer>

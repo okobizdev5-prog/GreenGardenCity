@@ -9,7 +9,7 @@ type WhatsAppButtonProps = {
 
 export function WhatsAppButton({
   phoneNumber = "+8801898777431",
-  message = "Hello Greenleaf Holdings Ltd., I am interested in your land projects and plot booking details.",
+  message = "Hello Green Garden City, I am interested in your land projects and plot booking details.",
 }: WhatsAppButtonProps) {
   const cleanPhone = phoneNumber.replace(/[^0-9]/g, "");
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
