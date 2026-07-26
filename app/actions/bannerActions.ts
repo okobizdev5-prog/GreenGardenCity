@@ -94,18 +94,16 @@ export async function getBannersAction() {
 
     const mappedBanners: BannerData[] = banners.map((b: any) => ({
       id: b.id,
-      badgeText: b.badgeText || defaultBanners[0].badgeText,
-      title: b.title || defaultBanners[0].title,
-      highlightTitle: b.highlightTitle || defaultBanners[0].highlightTitle,
-      subtitle: b.subtitle || defaultBanners[0].subtitle,
-      bgImage: b.bgImage || defaultBanners[0].bgImage,
-      highlights: Array.isArray(b.highlights) && b.highlights.length > 0
-        ? b.highlights
-        : defaultBanners[0].highlights,
-      primaryBtnText: b.primaryBtnText || defaultBanners[0].primaryBtnText,
-      primaryBtnLink: b.primaryBtnLink || defaultBanners[0].primaryBtnLink,
-      secondaryBtnText: b.secondaryBtnText || defaultBanners[0].secondaryBtnText,
-      secondaryBtnLink: b.secondaryBtnLink || defaultBanners[0].secondaryBtnLink,
+      badgeText: b.badgeText ?? "",
+      title: b.title ?? "",
+      highlightTitle: b.highlightTitle ?? "",
+      subtitle: b.subtitle ?? "",
+      bgImage: b.bgImage ?? "/hero_background.png",
+      highlights: Array.isArray(b.highlights) ? b.highlights : [],
+      primaryBtnText: b.primaryBtnText ?? "",
+      primaryBtnLink: b.primaryBtnLink ?? "",
+      secondaryBtnText: b.secondaryBtnText ?? "",
+      secondaryBtnLink: b.secondaryBtnLink ?? "",
       isActive: b.isActive ?? true,
     }));
 

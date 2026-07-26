@@ -38,21 +38,16 @@ const isVideo = (url?: string) => {
 };
 
 const emptyBannerState: BannerData = {
-  badgeText: "100% GATED & SECURE ECO-CITY",
-  title: "Discover the Future of",
-  highlightTitle: "Urban Living",
-  subtitle: "Experience the perfect harmony of modern architecture, advanced smart facilities, and pristine natural serenity. Your dream plot awaits at Green Garden City.",
+  badgeText: "",
+  title: "",
+  highlightTitle: "",
+  subtitle: "",
   bgImage: "/hero_background.png",
-  highlights: [
-    "Immediate Plot Registration",
-    "Electricity & Gas Connections Ready",
-    "15 Mins Drive from Hazrat Shahjalal Airport",
-    "Flexible Installment Plans Available"
-  ],
-  primaryBtnText: "Book a Site Visit",
-  primaryBtnLink: "#booking",
-  secondaryBtnText: "Explore Plots",
-  secondaryBtnLink: "#plots",
+  highlights: [],
+  primaryBtnText: "",
+  primaryBtnLink: "",
+  secondaryBtnText: "",
+  secondaryBtnLink: "",
   isActive: true,
 };
 
@@ -158,7 +153,7 @@ export default function BannerManager() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title.trim()) return alert("Please enter a banner title.");
+    if (!formData.bgImage || !formData.bgImage.trim()) return alert("Please select or upload a background media file.");
 
     setIsSaving(true);
 
@@ -316,7 +311,7 @@ export default function BannerManager() {
 
                 <div className="relative z-20 space-y-1">
                   <h4 className="text-white font-extrabold text-lg line-clamp-1">
-                    {banner.title}
+                    {banner.title || "Untitled Slide (Pure Media)"}
                   </h4>
                 </div>
               </div>
@@ -423,14 +418,35 @@ export default function BannerManager() {
               {/* Grid Form Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Slide Name / Reference</label>
+                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Slide Title / Name (Optional)</label>
                   <input
                     type="text"
-                    required
-                    value={formData.title}
+                    value={formData.title || ""}
                     onChange={e => setFormData({ ...formData, title: e.target.value })}
                     className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition py-2 px-3 text-sm font-medium text-gray-800"
-                    placeholder="e.g. Waterfront Villa, Eco-City Banner, etc."
+                    placeholder="e.g. Discover the Future of"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Title Highlight Text (Optional)</label>
+                  <input
+                    type="text"
+                    value={formData.highlightTitle || ""}
+                    onChange={e => setFormData({ ...formData, highlightTitle: e.target.value })}
+                    className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition py-2 px-3 text-sm font-medium text-gray-800"
+                    placeholder="e.g. Urban Living"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Badge Text (Optional)</label>
+                  <input
+                    type="text"
+                    value={formData.badgeText || ""}
+                    onChange={e => setFormData({ ...formData, badgeText: e.target.value })}
+                    className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition py-2 px-3 text-sm font-medium text-gray-800"
+                    placeholder="e.g. 100% GATED & SECURE ECO-CITY"
                   />
                 </div>
 
@@ -444,6 +460,43 @@ export default function BannerManager() {
                     />
                     <span className="text-sm font-semibold text-gray-700">Active Slide (Visible in Carousel)</span>
                   </label>
+                </div>
+              </div>
+
+              {/* Subtitle / Description */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Subtitle / Description (Optional)</label>
+                <textarea
+                  value={formData.subtitle || ""}
+                  onChange={e => setFormData({ ...formData, subtitle: e.target.value })}
+                  rows={2}
+                  className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition py-2 px-3 text-sm font-medium text-gray-800 resize-y"
+                  placeholder="e.g. Experience the perfect harmony of modern architecture..."
+                />
+              </div>
+
+              {/* CTA Buttons Config */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Primary Button Text (Optional)</label>
+                  <input
+                    type="text"
+                    value={formData.primaryBtnText || ""}
+                    onChange={e => setFormData({ ...formData, primaryBtnText: e.target.value })}
+                    className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition py-2 px-3 text-sm font-medium text-gray-800"
+                    placeholder="e.g. Book a Site Visit (Defaults if empty)"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Secondary Button Text (Optional)</label>
+                  <input
+                    type="text"
+                    value={formData.secondaryBtnText || ""}
+                    onChange={e => setFormData({ ...formData, secondaryBtnText: e.target.value })}
+                    className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition py-2 px-3 text-sm font-medium text-gray-800"
+                    placeholder="e.g. Explore Plots (Defaults if empty)"
+                  />
                 </div>
               </div>
 

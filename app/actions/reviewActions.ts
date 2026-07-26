@@ -48,7 +48,7 @@ export async function createReviewAction(data: {
         role: data.role || "Client",
         rating: data.rating,
         comment: data.comment,
-        approved: false, // Must be approved by admin
+        approved: true, // Auto-approved; admin can delete if needed
       },
     });
 

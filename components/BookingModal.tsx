@@ -33,7 +33,7 @@ export function BookingModal({
   const [projects, setProjects] = useState<ProjectBrief[]>([]);
   const [selectedProjectTitle, setSelectedProjectTitle] = useState<string>(initialPlot);
   const [selectedPlotSizes, setSelectedPlotSizes] = useState<string[]>([]);
-  const [landPurpose, setLandPurpose] = useState<"Residential" | "Commercial">("Residential");
+  const [landPurpose, setLandPurpose] = useState<"Residential" | "Commercial" | "Garden House">("Residential");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -73,7 +73,7 @@ export function BookingModal({
                       if (Array.isArray(parsed) && parsed.length > 0) {
                         plots = parsed.map(normalizePlotObject);
                       }
-                    } catch (e) {}
+                    } catch (e) { }
                   }
                 }
                 return {
@@ -97,8 +97,8 @@ export function BookingModal({
     propAvailablePlots && propAvailablePlots.length > 0
       ? propAvailablePlots.map(normalizePlotObject)
       : activeProject
-      ? activeProject.availablePlots
-      : defaultPlotOptions;
+        ? activeProject.availablePlots
+        : defaultPlotOptions;
 
   const togglePlotSelection = (plotItem: PlotObject) => {
     if (plotItem.isSoldOut) return;
@@ -181,7 +181,7 @@ export function BookingModal({
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
-            
+
             {/* Phone & Preferred Date */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -221,7 +221,7 @@ export function BookingModal({
 
             {/* Selected Project */}
             <div>
-              <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Select Project / Phase</label>
+              <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Select Project</label>
               <select
                 className="w-full border-gray-200 border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition bg-white text-sm text-gray-800 font-semibold"
                 value={selectedProjectTitle}
@@ -230,7 +230,7 @@ export function BookingModal({
                   setSelectedPlotSizes([]);
                 }}
               >
-                <option value="General Inquiry">General Inquiry / All Projects</option>
+                <option value="General Inquiry">General Inquiry</option>
                 {projects.map((proj) => (
                   <option key={proj.id} value={proj.title}>
                     {proj.title}
@@ -239,36 +239,45 @@ export function BookingModal({
               </select>
             </div>
 
-            {/* Land Purpose / Type Choice: Residential vs Commercial */}
+            {/* Land Purpose / Type Choice: Residential vs Commercial vs Garden House */}
             {selectedProjectTitle !== "General Inquiry" && (
               <div className="space-y-1.5 pt-1">
                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Land Category / Purpose (জমির ধরন)
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
                     onClick={() => setLandPurpose("Residential")}
-                    className={`py-2.5 px-3 rounded-xl border text-xs font-extrabold transition flex items-center justify-center gap-2 ${
-                      landPurpose === "Residential"
+                    className={`py-2 px-1 rounded-xl border text-[10px] sm:text-xs font-extrabold transition flex flex-col items-center justify-center gap-1.5 ${landPurpose === "Residential"
                         ? "bg-green-700 border-green-800 text-white shadow-xs"
                         : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
-                    }`}
+                      }`}
                   >
-                    <Building className="h-4 w-4" />
-                    Residential (আবাসিক)
+                    <Building className="h-4.5 w-4.5" />
+                    <span className="text-center">Residential</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setLandPurpose("Commercial")}
-                    className={`py-2.5 px-3 rounded-xl border text-xs font-extrabold transition flex items-center justify-center gap-2 ${
-                      landPurpose === "Commercial"
+                    className={`py-2 px-1 rounded-xl border text-[10px] sm:text-xs font-extrabold transition flex flex-col items-center justify-center gap-1.5 ${landPurpose === "Commercial"
                         ? "bg-green-700 border-green-800 text-white shadow-xs"
                         : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
-                    }`}
+                      }`}
                   >
-                    <Store className="h-4 w-4" />
-                    Commercial (বাণিজ্যিক)
+                    <Store className="h-4.5 w-4.5" />
+                    <span className="text-center">Commercial</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLandPurpose("Garden House")}
+                    className={`py-2 px-1 rounded-xl border text-[10px] sm:text-xs font-extrabold transition flex flex-col items-center justify-center gap-1.5 ${landPurpose === "Garden House"
+                        ? "bg-green-700 border-green-800 text-white shadow-xs"
+                        : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+                      }`}
+                  >
+                    <Compass className="h-4.5 w-4.5" />
+                    <span className="text-center">Garden House</span>
                   </button>
                 </div>
               </div>
@@ -296,13 +305,12 @@ export function BookingModal({
                         type="button"
                         disabled={isSold}
                         onClick={() => togglePlotSelection(plotItem)}
-                        className={`p-3 rounded-xl border text-left transition flex items-center justify-between ${
-                          isSold
+                        className={`p-3 rounded-xl border text-left transition flex items-center justify-between ${isSold
                             ? "bg-red-50 border-red-200 text-red-700 opacity-70 cursor-not-allowed"
                             : isChecked
-                            ? "bg-green-700 border-green-800 text-white shadow-xs font-bold"
-                            : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300 font-medium"
-                        }`}
+                              ? "bg-green-700 border-green-800 text-white shadow-xs font-bold"
+                              : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300 font-medium"
+                          }`}
                       >
                         <div className="flex flex-col min-w-0 pr-1">
                           <span className={`text-xs truncate ${isSold ? "line-through font-bold" : ""}`}>
@@ -311,15 +319,14 @@ export function BookingModal({
                           {isSold && <span className="text-[9px] font-extrabold text-red-600">SOLD OUT 🚫</span>}
                         </div>
                         <div
-                          className={`h-4 w-4 rounded-md border flex items-center justify-center shrink-0 ml-1.5 ${
-                            isSold
+                          className={`h-4 w-4 rounded-md border flex items-center justify-center shrink-0 ml-1.5 ${isSold
                               ? "bg-red-100 border-red-300 text-red-600"
                               : isChecked
-                              ? "bg-white text-green-800 border-white"
-                              : "border-gray-300 bg-white"
-                          }`}
+                                ? "bg-white text-green-800 border-white"
+                                : "border-gray-300 bg-white"
+                            }`}
                         >
-                          {isChecked && !isSold && <Check className="h-3 w-3 stroke-[3]" />}
+                          {isChecked && !isSold && <Check className="h-3 w-3 stroke-3" />}
                           {isSold && <span className="text-[9px] font-bold text-red-700">×</span>}
                         </div>
                       </button>

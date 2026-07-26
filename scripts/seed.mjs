@@ -23,9 +23,44 @@ async function main() {
   console.log('Seeding 6 default projects...');
   const defaultProjects = [
     {
-      title: "Green Garden Premium Villas",
-      description: `<h1>Green Garden Premium Villas</h1><p>Experience ultra-luxury living in our flagship villa project. Surrounded by natural lakes and private gardens, these villas offer the perfect sanctuary for your family.</p><h3>Key Features</h3><ul><li>Private Infinity Pools &amp; Sun Decks</li><li>Smart Home Automation &amp; Centralized AC</li><li>Renewable Solar Power Grid Connection</li><li>24/7 Gated Security &amp; CCTV Surveillance</li></ul><p>Located in the heart of Green Garden City, each villa layout is customizable to fit your architectural preferences.</p>`,
-      category: "Land - Phase 1",
+      title: "Green Garden Premium Villas (Residential Plot)",
+      description: `<h1>Green Garden Premium Villas</h1>
+<p>Experience ultra-luxury living in our flagship residential plot masterplan. Nestled in a highly secure, natural green environment, these plots are perfect for building your dream family home with custom designs.</p>
+
+<h3>Project Specifications</h3>
+<table style="width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 14px;">
+  <tbody>
+    <tr style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+      <td style="padding: 8px; font-weight: bold; color: #0f172a;">Project Category</td>
+      <td style="padding: 8px; color: #475569;">Residential Plots</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #e2e8f0;">
+      <td style="padding: 8px; font-weight: bold; color: #0f172a;">Available Sizes</td>
+      <td style="padding: 8px; color: #475569;">3 Katha, 5 Katha, 10 Katha</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+      <td style="padding: 8px; font-weight: bold; color: #0f172a;">Internal Roads</td>
+      <td style="padding: 8px; color: #475569;">30 ft &amp; 40 ft Wide Paved Roads</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #e2e8f0;">
+      <td style="padding: 8px; font-weight: bold; color: #0f172a;">Utilities</td>
+      <td style="padding: 8px; color: #475569;">Underground Electricity, Water &amp; Gas ready</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+      <td style="padding: 8px; font-weight: bold; color: #0f172a;">Security</td>
+      <td style="padding: 8px; color: #475569;">24/7 Gated Entry, CCTV, Guard Patrols</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Exclusive Amenities</h3>
+<ul>
+  <li>Central Playground &amp; Kids Play Zone</li>
+  <li>Lakeside Walking Deck &amp; Eco Park Access</li>
+  <li>Lush Green Buffer Zone for ultimate fresh air</li>
+  <li>Immediate Plot Registration &amp; Mutation</li>
+</ul>`,
+      category: "Residential",
       status: "Ongoing",
       images: [
         "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=1200",
@@ -34,9 +69,44 @@ async function main() {
       ]
     },
     {
-      title: "Lakeside Commercial Square",
-      description: `<h1>Lakeside Commercial Square</h1><p>A state-of-the-art business center designed for modern enterprises, corporate offices, and premium retail outlets. Located on the main 60ft boulevard with direct lake access and ample visitor parking.</p><h3>Key Features</h3><ul><li>Central Air Conditioning &amp; HVAC Systems</li><li>High-Speed Panoramic Elevators</li><li>Rooftop Restaurant &amp; Business Lounge</li><li>Fibre-Optic Internet &amp; 100% Power Backup</li></ul><p>Invest in retail spaces or full office floors with highly attractive rental yield projections.</p>`,
-      category: "Land - Phase 2",
+      title: "Lakeside Commercial Square (Commercial Plot)",
+      description: `<h1>Lakeside Commercial Square</h1>
+<p>A premium commercial land layout optimized for business centers, retail hubs, corporate offices, and banks. Positioned directly on the main 60ft entrance boulevard with unmatched brand visibility and lake-facing decks.</p>
+
+<h3>Project Specifications</h3>
+<table style="width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 14px;">
+  <tbody>
+    <tr style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+      <td style="padding: 8px; font-weight: bold; color: #0f172a;">Project Category</td>
+      <td style="padding: 8px; color: #475569;">Commercial Plots</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #e2e8f0;">
+      <td style="padding: 8px; font-weight: bold; color: #0f172a;">Available Sizes</td>
+      <td style="padding: 8px; color: #475569;">5 Katha, 10 Katha, 15 Katha</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+      <td style="padding: 8px; font-weight: bold; color: #0f172a;">Road Access</td>
+      <td style="padding: 8px; color: #475569;">Direct Access to 60 ft Main Boulevard</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #e2e8f0;">
+      <td style="padding: 8px; font-weight: bold; color: #0f172a;">Power Grid</td>
+      <td style="padding: 8px; color: #475569;">High-Load Industrial Electricity Line Connections</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+      <td style="padding: 8px; font-weight: bold; color: #0f172a;">Drainage</td>
+      <td style="padding: 8px; color: #475569;">High-Capacity Central Sewage Network</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Business Facilities</h3>
+<ul>
+  <li>Dedicated Customer Parking Bays</li>
+  <li>Broadband Fiber Optic Cable connectivity ready</li>
+  <li>Stunning Lakefront views with boardwalk pathway</li>
+  <li>Excellent long-term capital appreciation &amp; rental yields</li>
+</ul>`,
+      category: "Commercial",
       status: "Upcoming",
       images: [
         "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200",
@@ -44,9 +114,44 @@ async function main() {
       ]
     },
     {
-      title: "Central Eco Park Residences",
-      description: `<h1>Central Eco Park Residences</h1><p>High-rise residential apartments with 360-degree views of our central park. Integrated with sustainable design principles to maximize natural light, cross-ventilation, and eco-friendly waste management.</p><h3>Key Features</h3><ul><li>Rooftop Jogging Track &amp; Sky Garden</li><li>Rainwater Harvesting &amp; Greywater Recycling</li><li>Fully Equipped Gymnasium &amp; Swimming Pool</li><li>Children's Safe Play Zone &amp; Daycare Center</li></ul><p>Perfect for modern urban families seeking convenience, community, and clean fresh air.</p>`,
-      category: "Apartment",
+      title: "Central Eco Park Estates (Garden House Plot)",
+      description: `<h1>Central Eco Park Estates</h1>
+<p>Luxurious nature-rich estate land plots reserved for private holiday villas, farmhouse gardens, and open-air lawns. Every plot enjoys panoramic views of the scenic central eco-park and lake decks.</p>
+
+<h3>Project Specifications</h3>
+<table style="width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 14px;">
+  <tbody>
+    <tr style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+      <td style="padding: 8px; font-weight: bold; color: #0f172a;">Project Category</td>
+      <td style="padding: 8px; color: #475569;">Garden House Plots</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #e2e8f0;">
+      <td style="padding: 8px; font-weight: bold; color: #0f172a;">Available Sizes</td>
+      <td style="padding: 8px; color: #475569;">5 Katha, 10 Katha, 15 Katha</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+      <td style="padding: 8px; font-weight: bold; color: #0f172a;">Location Accent</td>
+      <td style="padding: 8px; color: #475569;">Scenic Central Eco-Park &amp; Lake Frontage</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #e2e8f0;">
+      <td style="padding: 8px; font-weight: bold; color: #0f172a;">Green Architecture</td>
+      <td style="padding: 8px; color: #475569;">Solar pathway light lines &amp; Rainwater harvesting ready</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+      <td style="padding: 8px; font-weight: bold; color: #0f172a;">Clubhouse Access</td>
+      <td style="padding: 8px; color: #475569;">Includes lifetime premium membership card</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Estate Highlights</h3>
+<ul>
+  <li>Private natural lake access with floating decks</li>
+  <li>Premium Clubhouse featuring organic swimming pools &amp; cafe</li>
+  <li>40% dedicated community green buffer landscape</li>
+  <li>Eco-friendly community policy guidelines</li>
+</ul>`,
+      category: "Garden House",
       status: "Delivered",
       images: [
         "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1200",

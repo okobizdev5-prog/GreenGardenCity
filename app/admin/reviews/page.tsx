@@ -1,18 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  Star, 
-  Trash2, 
-  CheckCircle2, 
-  XCircle, 
-  Sparkles, 
-  AlertCircle,
-  Loader2 
-} from "lucide-react";
+import { Star, Trash2, Sparkles, AlertCircle, Loader2 } from "lucide-react";
 import {
   getReviewsAction,
-  approveReviewAction,
   deleteReviewAction,
   seedDefaultReviewsAction
 } from "@/app/actions/reviewActions";
@@ -45,16 +36,6 @@ export default function AdminReviewsPage() {
     fetchReviews();
   }, []);
 
-  const handleApproveToggle = async (id: string, currentApprovedStatus: boolean) => {
-    setIsActionLoading(true);
-    const res = await approveReviewAction(id, !currentApprovedStatus);
-    if (res.success) {
-      fetchReviews();
-    } else {
-      alert(res.error || "Failed to update review status.");
-    }
-    setIsActionLoading(false);
-  };
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this review? This action cannot be undone.")) {
@@ -151,33 +132,12 @@ export default function AdminReviewsPage() {
                       </p>
                     </td>
                     <td className="p-4 align-middle">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide border ${
-                        review.approved 
-                          ? "bg-green-50 text-green-700 border-green-200" 
-                          : "bg-amber-50 text-amber-700 border-amber-200"
-                      }`}>
-                        {review.approved ? "Approved" : "Pending Review"}
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide border bg-green-50 text-green-700 border-green-200">
+                        Approved
                       </span>
                     </td>
                     <td className="p-4 align-middle text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => handleApproveToggle(review.id, review.approved)}
-                          disabled={isActionLoading}
-                          className={`p-1.5 rounded-lg transition border ${
-                            review.approved 
-                              ? "text-amber-600 hover:bg-amber-50 border-amber-200 hover:text-amber-700" 
-                              : "text-green-600 hover:bg-green-50 border-green-200 hover:text-green-700"
-                          }`}
-                          title={review.approved ? "Mark Pending" : "Approve Testimonial"}
-                        >
-                          {review.approved ? (
-                            <XCircle className="h-5 w-5" />
-                          ) : (
-                            <CheckCircle2 className="h-5 w-5" />
-                          )}
-                        </button>
-                        
                         <button
                           onClick={() => handleDelete(review.id)}
                           disabled={isActionLoading}

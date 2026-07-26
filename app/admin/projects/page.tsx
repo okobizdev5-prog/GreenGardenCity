@@ -46,7 +46,7 @@ export default function ProjectsManager() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<string[]>([]);
-  const [category] = useState("General");
+  const [category, setCategory] = useState("Residential");
   const [status] = useState("Ongoing");
   const [availablePlots, setAvailablePlots] = useState<PlotObject[]>([
     { name: "3 Katha", isSoldOut: false },
@@ -110,6 +110,7 @@ export default function ProjectsManager() {
     setTitle(project.title);
     setDescription(project.description || "");
     setImages(project.images || []);
+    setCategory(project.category || "Land - Phase 1");
     setAvailablePlots(parsePlotsFromProject(project));
     setIsModalOpen(true);
   };
@@ -178,6 +179,7 @@ export default function ProjectsManager() {
     setTitle("");
     setDescription("");
     setImages([]);
+    setCategory("Residential");
     setAvailablePlots([
       { name: "3 Katha", isSoldOut: false },
       { name: "5 Katha", isSoldOut: false },
@@ -258,6 +260,7 @@ export default function ProjectsManager() {
               <tr className="bg-gray-50 border-b border-gray-100">
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Images</th>
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Project Title</th>
+                <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Category</th>
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider">Description Summary</th>
                 <th className="p-4 font-bold text-xs text-gray-500 uppercase tracking-wider text-right">Actions</th>
               </tr>
@@ -292,6 +295,9 @@ export default function ProjectsManager() {
                     <p className="font-bold text-gray-950 text-sm">{project.title}</p>
                   </td>
                   <td className="p-4 align-middle">
+                    <span className="text-xs font-bold bg-green-50 text-green-700 px-2.5 py-1 rounded-full border border-green-100">{project.category || "General"}</span>
+                  </td>
+                  <td className="p-4 align-middle">
                     <p className="text-xs text-gray-500 line-clamp-2 max-w-xl">
                       {getPlainText(project.description)}
                     </p>
@@ -319,7 +325,7 @@ export default function ProjectsManager() {
 
               {filteredProjects.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="p-12 text-center text-gray-400 text-sm font-semibold">
+                  <td colSpan={5} className="p-12 text-center text-gray-400 text-sm font-semibold">
                     No projects found. Add a new project layout or seed default projects to get started.
                   </td>
                 </tr>
@@ -362,6 +368,20 @@ export default function ProjectsManager() {
                   className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition py-2.5 px-3.5 text-sm font-medium text-gray-700" 
                   placeholder="e.g. Eco Lakeside Villas"
                 />
+              </div>
+
+              {/* Category Selection */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Project Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="rounded-lg border-gray-200 border bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition py-2.5 px-3.5 text-sm font-medium text-gray-700"
+                >
+                  <option value="Residential">Residential</option>
+                  <option value="Commercial">Commercial</option>
+                  <option value="Garden House">Garden House</option>
+                </select>
               </div>
 
 

@@ -63,7 +63,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         >
           <Underline className="h-4 w-4" />
         </button>
-        <div className="w-[1px] h-4 bg-gray-300 mx-1.5"></div>
+        <div className="w-px h-4 bg-gray-300 mx-1.5"></div>
         <button
           type="button"
           onClick={() => execCommand("insertUnorderedList")}
@@ -81,13 +81,13 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
           <ListOrdered className="h-4 w-4" />
         </button>
       </div>
-      
+
       {/* Editable Area */}
       <div
         ref={editorRef}
         contentEditable
         onInput={handleInput}
-        className="p-4 min-h-[160px] focus:outline-none text-gray-800 text-sm leading-relaxed prose prose-sm max-w-none bg-transparent"
+        className="p-4 min-h-40 focus:outline-none text-gray-800 text-sm leading-relaxed prose prose-sm max-w-none bg-transparent"
         data-placeholder={placeholder}
       />
     </div>

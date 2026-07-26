@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { BookingModal } from "@/components/BookingModal";
+import { FloatingContactButtons } from "@/components/FloatingContactButtons";
 import { ChevronRight, CalendarCheck, Home, Image as ImageIcon, Compass, CheckCircle2, Sparkles } from "lucide-react";
 
 import { PlotObject, normalizePlotObject } from "@/lib/projectUtils";
@@ -30,8 +31,7 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
 
   const plotsList: PlotObject[] = rawPlots.map(normalizePlotObject);
 
-  const isProjectDeliveredOrSoldOut =
-    project.status === "Delivered" || project.status === "Sold Out";
+  const isProjectDeliveredOrSoldOut = false;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -221,6 +221,9 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
         initialPlot={project.title}
         availablePlots={plotsList}
       />
+
+      {/* Floating Call, WhatsApp and Booking CTA Buttons */}
+      <FloatingContactButtons onBookClick={() => setIsBookingOpen(true)} />
     </div>
   );
 }

@@ -36,6 +36,7 @@ import {
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { BookingModal } from "@/components/BookingModal";
+import { FloatingContactButtons } from "@/components/FloatingContactButtons";
 
 type Project = {
   id: string;
@@ -295,7 +296,7 @@ export function HomeClient({ initialProjects, banner, banners, about, galleryIte
     title: "House & Garden Plots",
     description: "Luxurious garden estate land options featuring private greenery, natural lake access, and open landscapes for beautiful holiday homes.",
     images: ["/project_image3.png"],
-    category: "House Garden",
+    category: "Garden House",
     status: "Ongoing"
   };
 
@@ -340,37 +341,106 @@ export function HomeClient({ initialProjects, banner, banners, about, galleryIte
       <Navbar onBookClick={() => handleBookVisit("Not Sure")} />
 
       {/* Hero Carousel Section */}
-      <section className="relative w-full h-[40vh] sm:h-[55vh] md:h-[70vh] lg:h-[80vh] pt-18 md:pt-20 overflow-hidden bg-gray-950">
+      <section className="relative w-full h-[65vh] sm:h-[70vh] md:h-[80vh] lg:h-[88vh] pt-18 md:pt-20 overflow-hidden bg-gray-950">
         <div className="relative w-full h-full">
           {activeBanners.map((banner, idx) => {
             const mediaUrl = banner.bgImage || "/hero_background.png";
             const isActive = idx === currentSlideIndex;
             const isVid = isVideo(mediaUrl);
+                const hasTextOverlay = !!(
+                  banner.title?.trim() ||
+                  banner.highlightTitle?.trim() ||
+                  banner.badgeText?.trim() ||
+                  banner.subtitle?.trim() ||
+                  (banner.highlights && banner.highlights.length > 0)
+                );
 
-            return (
-              <div
-                key={banner.id || idx}
-                className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-                  }`}
-              >
-                {isVid ? (
-                  <VideoSlide
-                    src={mediaUrl}
-                    isActive={isActive}
-                    onEnded={handleNextSlide}
-                    onError={handleNextSlide}
-                  />
-                ) : (
-                  <img
-                    src={mediaUrl}
-                    alt={`Slide ${idx + 1}`}
-                    className={`w-full h-full object-cover ${isActive ? "animate-kenburns" : ""}`}
-                  />
-                )}
-                {/* Subtle dark overlay for premium look */}
-                <div className="absolute inset-0 bg-black/15 z-10"></div>
-              </div>
-            );
+                return (
+                  <div
+                    key={banner.id || idx}
+                    className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                      }`}
+                  >
+                    {isVid ? (
+                      <VideoSlide
+                        src={mediaUrl}
+                        isActive={isActive}
+                        onEnded={handleNextSlide}
+                        onError={handleNextSlide}
+                      />
+                    ) : (
+                      <img
+                        src={mediaUrl}
+                        alt={`Slide ${idx + 1}`}
+                        className={`w-full h-full object-cover ${isActive ? "animate-kenburns" : ""}`}
+                      />
+                    )}
+                    
+                    {hasTextOverlay && (
+                      <>
+                        {/* Subtle dark overlay for premium look */}
+                        <div className="absolute inset-0 bg-black/45 z-10"></div>
+
+                        {/* Premium Banner Content Overlay */}
+                        <div className="absolute inset-0 z-20 flex items-center">
+                          <div className="container mx-auto px-4 md:px-8 max-w-7xl w-full">
+                            <div className="max-w-3xl space-y-4 md:space-y-6 text-left">
+                              {banner.badgeText && (
+                                <span className="inline-block px-3.5 py-1.5 rounded-full bg-amber-400/20 text-amber-300 text-xxs sm:text-xs font-bold uppercase tracking-widest border border-amber-400/30 backdrop-blur-md">
+                                  {banner.badgeText}
+                                </span>
+                              )}
+
+                              <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-tight select-none">
+                                {banner.title}{" "}
+                                {banner.highlightTitle && (
+                                  <span className="bg-gradient-to-r from-amber-300 to-amber-500 bg-clip-text text-transparent">
+                                    {banner.highlightTitle}
+                                  </span>
+                                )}
+                              </h1>
+
+                              {banner.subtitle && (
+                                <p className="text-xs sm:text-sm md:text-lg text-gray-200 font-light leading-relaxed max-w-2xl line-clamp-3 md:line-clamp-none">
+                                  {banner.subtitle}
+                                </p>
+                              )}
+
+                              {/* Highlights */}
+                              {banner.highlights && banner.highlights.length > 0 && (
+                                <div className="hidden sm:grid grid-cols-2 gap-3 max-w-xl pt-2">
+                                  {banner.highlights.map((h, i) => (
+                                    <div key={i} className="flex items-center gap-2 text-white/90 text-xs sm:text-sm font-semibold">
+                                      <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
+                                      <span>{h}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* CTA Buttons */}
+                              <div className="pt-2 md:pt-4 flex flex-wrap gap-3">
+                                <button
+                                  onClick={() => handleBookVisit(banner.primaryBtnText || "Book a Site Visit")}
+                                  className="bg-green-700 hover:bg-green-800 text-white font-bold py-3.5 px-6 rounded-xl transition duration-300 text-xs sm:text-sm cursor-pointer shadow-lg active:scale-97 hover:scale-103 flex items-center gap-2"
+                                >
+                                  <CalendarDays className="h-4.5 w-4.5 text-amber-300" />
+                                  <span>{banner.primaryBtnText || "Book a Site Visit"}</span>
+                                </button>
+                                <a
+                                  href={banner.secondaryBtnLink || "#plots"}
+                                  className="bg-white/10 hover:bg-white/20 text-white font-bold py-3.5 px-6 rounded-xl transition duration-300 text-xs sm:text-sm border border-white/20 backdrop-blur-xs flex items-center justify-center cursor-pointer active:scale-97 hover:scale-103"
+                                >
+                                  {banner.secondaryBtnText || "Explore Plots"}
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
           })}
         </div>
 
@@ -1105,38 +1175,7 @@ export function HomeClient({ initialProjects, banner, banners, about, galleryIte
         </div>
       </section>
 
-      {/* Detailed Location & Step-by-step Route Breakdown */}
-      <section id="location" className="py-20 bg-white border-t border-gray-100">
-        <div className="container mx-auto px-4 md:px-8 max-w-7xl">
-          <div className="overflow-hidden rounded-3xl border border-gray-200 shadow-md bg-white flex flex-col">
-            <div className="bg-green-950 text-white px-5 py-4 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2 text-xs sm:text-sm font-bold min-w-0">
-                <MapPin className="h-4.5 w-4.5 text-amber-400 shrink-0" />
-                <span className="truncate">Real Map: Green Garden City, Kaliganj, Gazipur</span>
-              </div>
-              <a
-                href="https://maps.google.com/?q=Kaliganj,Gazipur,Bangladesh"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs font-extrabold bg-amber-400 text-green-950 px-4 py-2 rounded-xl hover:bg-amber-300 transition whitespace-nowrap shrink-0"
-              >
-                Open Google Maps ↗
-              </a>
-            </div>
 
-            <div className="relative w-full h-100 sm:h-125">
-              <iframe
-                title="Green Garden City Real Location Map"
-                src="https://maps.google.com/maps?q=Kaliganj,%20Gazipur,%20Bangladesh&t=&z=14&ie=UTF8&iwloc=&output=embed"
-                className="w-full h-full border-0"
-                allowFullScreen={true}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Customer Reviews / Testimonials Section */}
       <section className="py-16 bg-linear-to-b from-gray-50 to-white border-t border-gray-100 overflow-hidden">
@@ -1154,9 +1193,9 @@ export function HomeClient({ initialProjects, banner, banners, about, galleryIte
           </div>
 
           {/* Swiper Carousel for Testimonials */}
-          <div className="testimonial-swiper-wrapper relative">
+          <div className="testimonial-swiper-wrapper relative px-4 sm:px-12">
             <Swiper
-              modules={[Autoplay, Pagination]}
+              modules={[Autoplay, Pagination, SwiperNavigation]}
               spaceBetween={24}
               slidesPerView={1}
               loop={displayReviews.length > 3}
@@ -1169,7 +1208,10 @@ export function HomeClient({ initialProjects, banner, banners, about, galleryIte
                 clickable: true,
                 dynamicBullets: true,
               }}
-              navigation={true}
+              navigation={{
+                nextEl: ".swiper-button-next-custom",
+                prevEl: ".swiper-button-prev-custom",
+              }}
               breakpoints={{
                 640: { slidesPerView: 1, spaceBetween: 20 },
                 768: { slidesPerView: 2, spaceBetween: 24 },
@@ -1210,6 +1252,14 @@ export function HomeClient({ initialProjects, banner, banners, about, galleryIte
                 </SwiperSlide>
               ))}
             </Swiper>
+
+            {/* Custom Prev/Next Arrows */}
+            <button className="hidden sm:flex swiper-button-prev-custom absolute left-0 top-[42%] -translate-y-1/2 h-9 w-9 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-green-700 hover:text-white flex items-center justify-center shadow-xs transition z-20 cursor-pointer hover:border-green-700">
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button className="hidden sm:flex swiper-button-next-custom absolute right-0 top-[42%] -translate-y-1/2 h-9 w-9 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-green-700 hover:text-white flex items-center justify-center shadow-xs transition z-20 cursor-pointer hover:border-green-700">
+              <ChevronRight className="h-5 w-5" />
+            </button>
           </div>
 
           <div className="pt-10 flex justify-center">
@@ -1335,12 +1385,26 @@ export function HomeClient({ initialProjects, banner, banners, about, galleryIte
       {/* Footer */}
       <footer className="bg-green-950 text-gray-300 pt-16 pb-8 border-t border-green-900">
         <div className="container mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-          {/* Brand Info */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white tracking-wide">Green Garden City</h3>
-            <p className="text-sm text-green-100/70 font-light leading-relaxed">
-              Providing beautiful, eco-friendly real-estate solutions for high-end urban dwelling. Experience the peace of nature with state-of-the-art facilities.
-            </p>
+          {/* Brand Info & Office Hours */}
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <h3 className="text-xl font-bold text-white tracking-wide">Green Garden City</h3>
+              <p className="text-sm text-green-100/70 font-light leading-relaxed">
+                Providing beautiful, eco-friendly real-estate solutions for high-end urban dwelling. Experience the peace of nature with state-of-the-art facilities.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-bold text-white text-sm">Office Hours</h4>
+              <p className="text-xs text-green-100/70">Saturday - Thursday<br />9:00 AM - 6:00 PM</p>
+              <div className="pt-1">
+                <a
+                  href="/admin"
+                  className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 hover:underline"
+                >
+                  Admin Dashboard &rarr;
+                </a>
+              </div>
+            </div>
           </div>
 
           {/* Quick Links */}
@@ -1351,41 +1415,51 @@ export function HomeClient({ initialProjects, banner, banners, about, galleryIte
               <li><a href="#about" className="hover:text-amber-400 transition">About Us</a></li>
               <li><a href="#amenities" className="hover:text-amber-400 transition">Amenities</a></li>
               <li><a href="#plots" className="hover:text-amber-400 transition">Available Plots</a></li>
-              <li><a href="#location" className="hover:text-amber-400 transition">Location</a></li>
             </ul>
-          </div>
-
-          {/* Legal / Admin */}
-          <div className="space-y-4">
-            <h4 className="font-bold text-white text-base">Office Hours</h4>
-            <p className="text-sm text-green-100/70">Saturday - Thursday<br />9:00 AM - 6:00 PM</p>
-            <div className="pt-2">
-              <a
-                href="/admin"
-                className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 hover:underline"
-              >
-                Admin Login Dashboard &rarr;
-              </a>
-            </div>
           </div>
 
           {/* Contacts */}
           <div className="space-y-4">
             <h4 className="font-bold text-white text-base">Get in Touch</h4>
             <ul className="space-y-3 text-sm">
-              <li className="flex items-center gap-3">
-                <Phone className="h-4 w-4 text-amber-400 shrink-0" />
+              <li className="flex items-start gap-3">
+                <Phone className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
                 <span>01898777431</span>
               </li>
-              <li className="flex items-center gap-3">
-                <Mail className="h-4 w-4 text-amber-400 shrink-0" />
-                <span>greengardencitypurbachal@gmail.com</span>
+              <li className="flex items-start gap-3">
+                <Mail className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                <span className="break-all">greengardencitypurbachal@gmail.com</span>
               </li>
-              <li className="flex items-center gap-3">
-                <MapPin className="h-4 w-4 text-amber-400 shrink-0" />
+              <li className="flex items-start gap-3">
+                <MapPin className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
                 <span>Green Garden City, Kaliganj, Gazipur</span>
               </li>
             </ul>
+          </div>
+
+          {/* Map on the right side */}
+          <div id="footer-map" className="space-y-4">
+            <h4 className="font-bold text-white text-base">Our Location</h4>
+            <div className="overflow-hidden rounded-2xl border border-green-900 shadow-md h-44 bg-green-900/10">
+              <iframe
+                title="Green Garden City Real Location Map"
+                src="https://maps.google.com/maps?q=Kaliganj,%20Gazipur,%20Bangladesh&t=&z=14&ie=UTF8&iwloc=&output=embed"
+                className="w-full h-full border-0"
+                allowFullScreen={true}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+            <div className="flex justify-between items-center">
+              <a
+                href="https://maps.google.com/?q=Kaliganj,Gazipur,Bangladesh"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 hover:underline"
+              >
+                Open Google Maps &rarr;
+              </a>
+            </div>
           </div>
         </div>
 
@@ -1450,6 +1524,9 @@ export function HomeClient({ initialProjects, banner, banners, about, galleryIte
         onClose={() => setIsBookingOpen(false)}
         initialPlot={selectedProjectTitle}
       />
+
+      {/* Floating Call, WhatsApp and Booking CTA Buttons */}
+      <FloatingContactButtons onBookClick={() => handleBookVisit("General Inquiry")} />
     </div>
   );
 }
